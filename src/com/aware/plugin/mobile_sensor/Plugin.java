@@ -31,7 +31,6 @@ import com.aware.Screen;
 import com.aware.plugin.mobile_sensor.MobileSensor_Provider.MobileSensor_Data;
 import com.aware.plugin.mobile_sensor.activities.Settings;
 import com.aware.plugin.mobile_sensor.calendar.CalendarEvent;
-//import com.aware.plugin.mobile_sensor.observers.AmbientNoiseObserver;
 import com.aware.plugin.mobile_sensor.calendar.CalendarObserver;
 import com.aware.plugin.mobile_sensor.observers.ESMObserver;
 import com.aware.plugin.mobile_sensor.observers.InstallationsObserver;
@@ -39,7 +38,6 @@ import com.aware.plugin.mobile_sensor.observers.MessageObserver;
 import com.aware.plugin.mobile_sensor.observers.MoTObserver;
 import com.aware.plugin.mobile_sensor.observers.MultitaskingObserver;
 import com.aware.plugin.mobile_sensor.observers.NoiseObserver;
-//import com.aware.plugin.mobile_sensor.observers.NoiseObserver;
 import com.aware.plugin.mobile_sensor.observers.ScreenObserver;
 import com.aware.plugin.mobile_sensor.observers.VoiceCallObserver;
 import com.aware.plugin.modeoftransportation.MoT_Provider.MoT;
@@ -204,8 +202,6 @@ public class Plugin extends Aware_Plugin {
 		startAwarePlugins();
 		startAlarms();
 		startContentObservers();
-//		isMyServiceRunning(com.aware.plugin.noise_level.Plugin.class, getApplicationContext());
-//		isMyServiceRunning(com.aware.plugin.modeoftransportation.Plugin.class, getApplicationContext());
 		//Shares this plugin’s context to AWARE and applications
 		CONTEXT_PRODUCER = new ContextProducer() {
 			@SuppressLint("SimpleDateFormat")
@@ -578,26 +574,12 @@ public class Plugin extends Aware_Plugin {
 				}
 			}
 			if(existingEvent == 0){
-//				Handler newAlarm = new Handler(thread_handler.getLooper());
 				HandlerThread alarm = new HandlerThread("Calendar");
 				alarm.start();
 				Handler newAlarm = new Handler(alarm.getLooper());
 				thread_calendar_alarms.add(id,newAlarm);
-//				Log.d("CalendarAlarm","Adding: "+event.getTitle()+" at idx: "+id);
-//				Log.d("CalendarAlarm","Begin: "+event.getBegin());
-//				Log.d("CalendarAlarm","Reminder to subtract: "+(event.getMaxReminder()*60000));
-//				Log.d("CalendarAlarm","Begin-Reminder+2min: "+((event.getBegin()-(event.getMaxReminder()*60000))+120000));
-//				Log.d("CalendarAlarm","Size of thread list after adding: "+thread_calendar_alarms.size());
 			}
-//			Log.d("CalendarAlarm","**********");
-//			//print list
-//			for(CalendarEvent e : eventList){
-//				Log.d("CalendarAlarm",e.getTitle());
-//			}
-//			Log.d("CalendarAlarm","Size of event list after adding: "+eventList.size());
-//			Log.d("CalendarAlarm","**********");
 			long nextAlarm = ((event.begin-(event.maxReminder*60000))+120000) - System.currentTimeMillis();
-//			Log.d("CalendarAlarm","Delay for pre-alarm: "+nextAlarm);
 			thread_calendar_alarms.get(id).postDelayed(calendarAlarm, nextAlarm);
 		}
 	}
@@ -607,28 +589,12 @@ public class Plugin extends Aware_Plugin {
 	 * @param id
 	 */
 	public void stopCalendarAlarm(int id){
-//		Log.d("CalendarAlarm","**********");
-//		Log.d("CalendarAlarm","Removing: "+eventList.get(id).getTitle());
 		eventList.remove(id);
 		thread_calendar_alarms.get(id).removeCallbacksAndMessages(null);
 		thread_calendar_alarms.remove(id);
-//		Log.d("CalendarAlarm","Size of thread list after removing: "+thread_calendar_alarms.size());
-		//print list
-//		for(CalendarEvent e : eventList){
-//			Log.d("CalendarAlarm",e.getTitle());
-//		}
-//		Log.d("CalendarAlarm","Size of event list after removing: "+eventList.size());
-//		Log.d("CalendarAlarm","**********");
-//		Log.d("CalendarAlarm","Attempting next alarm!");
 		if(eventList.size() > 0){
-//			Log.d("CalendarAlarm","There's one more! size: "+eventList.size());
-//			Log.d("CalendarAlarm","Starting next alarm!");
 			startCalendarAlarm(id);
 		} 
-//		else{
-////			Log.d("CalendarAlarm","No more events!");
-//		}
-//		Log.d("CalendarAlarm","**********");
 	}
 
 	/**
@@ -786,34 +752,17 @@ public class Plugin extends Aware_Plugin {
 			} if(calendar != null && ! calendar.isClosed() ) calendar.close();
 			//Run this again when you reach 12:30am either today or the next day
 			long current = System.currentTimeMillis();
-//			Log.d("EventList","**********");
-//			//print list
-//			for(CalendarEvent event : eventList){
-//				Log.d("EventList",event.getTitle());
-//			}
-//			Log.d("EventList","size: "+eventList.size());
-//			Log.d("EventList","**********");
 			if(eventList.size() > 0)
 				startCalendarAlarm(0);
 			thread_calSetup.postDelayed(this, (stop-current));
 		}
 	};
 	
-//	/**
-//	 * 
-//	 * @return
-//	 */
-//	public ArrayList<CalendarEvent> getCalEvents(){
-//		return eventList;
-//	}
-	
 	/**
 	 * 
 	 * @param e
 	 */
 	public void addEvent(CalendarEvent e){
-//		Log.d("EventList","**********");
-//		Log.d("EventList","Inside addEvent");
 		int ID = 0;
 		if(!eventList.contains(e)){
 			//Add to an index
@@ -829,31 +778,16 @@ public class Plugin extends Aware_Plugin {
 			if(i == eventList.size()){
 				eventList.add(e);
 			}
-//			//print list
-//			for(CalendarEvent event : eventList){
-//				Log.d("EventList",event.getTitle());
-//			}
-//			Log.d("EventList","size: "+eventList.size());
-//			Log.d("EventList","**********");
 			startCalendarAlarm(ID);
 		}
 	}
 	
 	public void removeEvent(int id){
-//		Log.d("EventList","**********");
-//		Log.d("EventList","Inside removeEvent");
 		eventList.remove(id);
 		if(thread_calendar_alarms.size() > id){
 			thread_calendar_alarms.get(id).removeCallbacksAndMessages(null);
 			thread_calendar_alarms.remove(id);
-//			Log.d("EventList","Size of thread list after removing: "+thread_calendar_alarms.size());
 		}
-//		//print list
-//		for(CalendarEvent event : eventList){
-//			Log.d("EventList",event.getTitle());
-//		}
-//		Log.d("EventList","Size of event list after removing: "+eventList.size());
-//		Log.d("EventList","**********");
 	}
 	
 	/**
@@ -877,25 +811,5 @@ public class Plugin extends Aware_Plugin {
 			e.printStackTrace();
 		}
 	}
-	
-//	private boolean isMyServiceRunning(Class<?> serviceClass,Context context) {
-//	private void isMyServiceRunning(Class<?> serviceClass,Context context) {
-//    ActivityManager manager = (ActivityManager)context. getSystemService(Context.ACTIVITY_SERVICE);
-//    int i = 0;
-//    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-////    	if(service.service.getClassName().contains("aware")){
-////    		Log.d("Service",service.service.getClassName());
-////    		i++;
-////    	}
-//        if (serviceClass.getName().equals(service.service.getClassName())) {
-////            Log.i("Service already","running");
-//            Log.d("Service",serviceClass.getName()+" is running "+i);
-////            return true;
-//        }
-//    }	
-//    Log.d("Service",serviceClass.getName()+" isn't running "+i);
-////    Log.i("Service not","running");
-////    return false;
-//}
 	
 }
