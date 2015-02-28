@@ -193,6 +193,273 @@ public class Plugin extends Aware_Plugin {
 	public static final String outputFile = "/sosm-out.csv";
 	
 	/**
+	 * Code here when add-on is turned on.
+	 */
+	@SuppressLint("NewApi")
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		TAG = "AWARE::Mobile Sensor";
+		startAwareSensors();
+		startAwarePlugins();
+		startAlarms();
+		startContentObservers();
+//		isMyServiceRunning(com.aware.plugin.noise_level.Plugin.class, getApplicationContext());
+//		isMyServiceRunning(com.aware.plugin.modeoftransportation.Plugin.class, getApplicationContext());
+		//Shares this plugin’s context to AWARE and applications
+		CONTEXT_PRODUCER = new ContextProducer() {
+			@SuppressLint("SimpleDateFormat")
+			@Override
+			public void onContext() {
+				if(null != participantID && Plugin.screenIsOn && Settings.isInitialized()){
+					//change this to debug any sensor and if they're being inserted when sensed
+					Calendar newCal = new GregorianCalendar();
+					SimpleDateFormat sdf = new SimpleDateFormat("M-dd-yyyy");
+					String date = sdf.format(newCal.getTime());
+//					Log.d("Time","Date: "+date);
+					SimpleDateFormat sdf2 = new SimpleDateFormat("k:mm:ss");
+					long timestamp = System.currentTimeMillis();
+					String timestampString = sdf2.format(new Date(System.currentTimeMillis()));
+					deviceID = Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID);
+//					String context = ""+date+","+timestampString+","+participantID+","+device+","+multitasking+","+movement+","+noise_level+","+ambient_noise+","+voice_messaging
+//							+","+text_messaging+","+email+","+calendar_event+","+rating+","+loudnessRating;
+					String context = ""+date+","+timestampString+","+participantID+","+deviceID+","+multitasking+","+movement+","+noise_level+","+voice_messaging
+							+","+text_messaging+","+email+","+calendar_event+","+installations+","+rating+","+loudnessRating;
+					createOutput(context);
+					ContentValues context_data = new ContentValues();
+					context_data.put(MobileSensor_Data.TIMESTAMP, timestamp);
+					context_data.put(MobileSensor_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
+					context_data.put(MobileSensor_Data.MULTITASKING, multitasking);
+					context_data.put(MobileSensor_Data.MOT, movement);
+					context_data.put(MobileSensor_Data.NOISE_LEVEL, noise_level);
+//					context_data.put(MobileSensor_Data.AMBIENT_NOISE, ambient_noise);
+					context_data.put(MobileSensor_Data.CALLS, voice_messaging);
+					context_data.put(MobileSensor_Data.MESSAGING, text_messaging);
+					context_data.put(MobileSensor_Data.CALENDAR, calendar_event);
+					context_data.put(MobileSensor_Data.EMAIL, email);
+					context_data.put(MobileSensor_Data.INSTALLATIONS, installations);
+					//insert data to table MobileSensor_Data
+					getContentResolver().insert(MobileSensor_Data.CONTENT_URI, context_data);
+					
+					Intent sharedContext = new Intent(ACTION_AWARE_PLUGIN_MOBILE_SENSOR);
+					sharedContext.putExtra(EXTRA_MULTITASKING, multitasking);
+					sharedContext.putExtra(EXTRA_MOT, movement);
+					sharedContext.putExtra(EXTRA_ABS_NOISE, noise_level);
+//					sharedContext.putExtra(EXTRA_REL_NOISE, ambient_noise);
+					sharedContext.putExtra(EXTRA_CALLS, voice_messaging);
+					sharedContext.putExtra(EXTRA_MESSAGING, text_messaging);
+					sharedContext.putExtra(EXTRA_CALENDAR, calendar_event);
+					sharedContext.putExtra(EXTRA_EMAIL, email);
+					sharedContext.putExtra(EXTRA_INSTALLATIONS, installations);
+					sendBroadcast(sharedContext);
+					rating = null;
+					loudnessRating = null;
+				}
+			}
+		};
+		
+		//Our provider tables
+		DATABASE_TABLES = MobileSensor_Provider.DATABASE_TABLES;
+		//Our table fields
+		TABLES_FIELDS = MobileSensor_Provider.TABLES_FIELDS;
+		//Our provider URI
+		CONTEXT_URIS = new Uri[]{ MobileSensor_Data.CONTENT_URI };
+	}
+	
+	public void startAwareSensors(){
+		Intent aware = new Intent(this, Aware.class);
+	    startService(aware);
+	    //Activate core sensors
+		Aware.setSetting(getApplicationContext(), STATUS_PLUGIN_MOBILE_SENSOR, true);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_SCREEN, true);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_INSTALLATIONS, true);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_APPLICATIONS, true);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_CALLS, true);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_MESSAGES, true);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_ESM, true);
+		Aware.setSetting(this, Aware_Preferences.DEBUG_FLAG, true);
+		Intent apply = new Intent(Aware.ACTION_AWARE_REFRESH);
+		sendBroadcast(apply);
+	}
+	
+	public void startAwarePlugins(){
+		//Activate plugins
+//  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
+//  	    startService(mot);
+//  		Intent rel_noise = new Intent(this, com.aware.plugin.ambient_noise.Plugin.class);
+//  	    startService(rel_noise);
+		//Initialize Screen/Multitasking/MoT/Noise vars
+		screenOnTime = System.currentTimeMillis();
+		lastNegativeESM = screenOnTime;
+		lastThrottleTime = screenOnTime;
+		screenIsOn = true;
+	}
+	
+	/**
+	 * Calendar events alarm and MoT alarm
+	 */
+	public void startAlarms(){
+		thread_cal_alarm.start();
+		thread_calendar_alarms = new ArrayList<Handler>();
+		event_alarms = new ArrayList<Runnable>();
+		Plugin.lastCalendarESM = screenOnTime;
+		//Alarm for the MoT Esm question
+		thread_esm_alarm = new Handler(thread_cal_alarm.getLooper());
+		thread_esm_alarm.postDelayed(esmAlarm, 5000);
+		//Alarm for setting up events for Calendar
+		thread_calSetup = new Handler(thread_cal_alarm.getLooper());
+		thread_calSetup.postDelayed(setUpEvents, 1000);
+	}
+	
+	/**
+	 * Initialize the multithread handler manager for ContentObservers and
+	 * initialize the context observers for the sensors
+	 */
+	@SuppressLint("NewApi")
+	public void startContentObservers(){
+		//Register the sensor handler thread with the handler managers
+		
+		//Multitasking
+		thread_multitasking.start();
+		thread_sensor_multi = new Handler(thread_multitasking.getLooper());
+		multitask_observer = new MultitaskingObserver(thread_sensor_multi, this);
+		MultitaskingObserver.lastMultiESM = screenOnTime;
+		MultitaskingObserver.lastEmailESM = screenOnTime;
+		
+		//MoT
+		thread_mot.start();
+		thread_sensor_mot = new Handler(thread_mot.getLooper());
+		mot_observer = new MoTObserver(thread_sensor_mot, this);
+		
+		//NoiseLevel
+//		thread_sensor_noise = new Handler(thread_handler.getLooper());
+		//Initialize the context observers with the sensor thread for performance
+//		noise_observer = new NoiseObserver(thread_sensor_noise, this);
+//		NoiseObserver.lastNoisyESM = screenOnTime;
+		
+		//Phone 
+		thread_phone.start();
+		thread_sensor_phone = new Handler(thread_phone.getLooper());
+		phone_observer = new VoiceCallObserver(thread_sensor_phone, this);
+		VoiceCallObserver.lastVoiceESM = screenOnTime;
+		
+		//Text Messaging
+		thread_messages.start();
+		thread_sensor_messages = new Handler(thread_messages.getLooper());
+		messages_observer = new MessageObserver(thread_sensor_messages, this);
+		MessageObserver.lastMessageESM = screenOnTime;
+		
+		//Installations
+		thread_install.start();
+		thread_sensor_install = new Handler(thread_install.getLooper());
+		install_observer = new InstallationsObserver(thread_sensor_install, this);
+		
+		//ESM
+		thread_esm.start();
+		thread_sensor_esm = new Handler(thread_esm.getLooper());
+		esm_observer = new ESMObserver(thread_sensor_esm, this);
+		
+		//Calendar
+		thread_calendar.start();
+		thread_observer_calendar = new Handler(thread_calendar.getLooper());
+		calendar_observer = new CalendarObserver(thread_observer_calendar, this);
+		
+		//Screen
+		thread_screen.start();
+		thread_sensor_screen = new Handler(thread_screen.getLooper());
+		//create a context filter for screen
+		IntentFilter screenFilter = new IntentFilter();
+		screenFilter.addAction(Screen.ACTION_AWARE_SCREEN_ON);
+		screenFilter.addAction(Screen.ACTION_AWARE_SCREEN_OFF);
+		screenListener = new ScreenObserver(this);
+		
+		//Ambient noise
+//		thread_sensor_ambient_noise = new Handler(thread_handler.getLooper());
+//		ambient_noise_observer = new AmbientNoiseObserver(thread_sensor_ambient_noise, this);
+//		ambient_noise_observer.setLastAmbientESM(screenOnTime);
+		
+		//Ask Android to register our context receiver
+		registerReceiver(screenListener, screenFilter, null, thread_sensor_screen);
+		//Start listening to changes on the Applications_Foreground, MoT, and NoiseLevel databases
+		getContentResolver().registerContentObserver(Applications_Foreground.CONTENT_URI, true, multitask_observer);
+		getContentResolver().registerContentObserver(MoT.CONTENT_URI, true, mot_observer);
+		getContentResolver().registerContentObserver(Installations_Data.CONTENT_URI, true, install_observer);
+//		getContentResolver().registerContentObserver(NoiseLevel.CONTENT_URI, true, noise_observer);
+//		getContentResolver().registerContentObserver(AmbientNoise_Data.CONTENT_URI, true, ambient_noise_observer);
+		getContentResolver().registerContentObserver(Calls_Data.CONTENT_URI, true, phone_observer);
+		getContentResolver().registerContentObserver(Messages_Data.CONTENT_URI, true, messages_observer);
+		getContentResolver().registerContentObserver(ESM_Data.CONTENT_URI, true, esm_observer);
+		getContentResolver().registerContentObserver(Reminders.CONTENT_URI, true, calendar_observer);
+	}
+		
+	/**
+	 * Code here when add-on is turned off.
+	 */
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+//		Log.d("service","mobile sensor being destroyed!");
+		participantID = null;
+		deviceID = null;
+		unregisterReceiver(screenListener);
+		//unregister our Applications, MoT, Noise Level, Communications context observers from Android
+		getContentResolver().unregisterContentObserver(multitask_observer);
+		getContentResolver().unregisterContentObserver(mot_observer);
+//		getContentResolver().unregisterContentObserver(noise_observer);
+		getContentResolver().unregisterContentObserver(phone_observer);
+		getContentResolver().unregisterContentObserver(messages_observer);
+		getContentResolver().unregisterContentObserver(esm_observer);
+		getContentResolver().unregisterContentObserver(calendar_observer);
+//		getContentResolver().unregisterContentObserver(ambient_noise_observer);
+		
+		//stop listening to changes in the database(s)
+		thread_sensor_screen.removeCallbacksAndMessages(null);
+		thread_sensor_multi.removeCallbacksAndMessages(null);
+		thread_sensor_mot.removeCallbacksAndMessages(null);
+//		thread_sensor_noise.removeCallbacksAndMessages(null);
+		thread_sensor_messages.removeCallbacksAndMessages(null);
+		thread_sensor_esm.removeCallbacksAndMessages(null);
+		thread_esm_alarm.removeCallbacksAndMessages(null);
+		thread_observer_calendar.removeCallbacksAndMessages(null);
+		thread_sensor_install.removeCallbacksAndMessages(null);
+		
+		if(thread_calendar_alarms.size() != 0){
+			for(Handler h : thread_calendar_alarms){
+				h.removeCallbacksAndMessages(null);
+			}
+			thread_calendar_alarms.clear();
+		}
+		
+		thread_multitasking.quitSafely();
+		thread_mot.quitSafely();
+		thread_messages.quitSafely();
+		thread_phone.quitSafely();
+		thread_esm.quitSafely();
+		thread_calendar.quitSafely();
+		thread_screen.quitSafely();
+		thread_install.quitSafely();
+		
+		//Deactivate the sensors
+		Aware.setSetting(getApplicationContext(), STATUS_PLUGIN_MOBILE_SENSOR, false);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_SCREEN, false);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_INSTALLATIONS, false);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_APPLICATIONS, false);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_CALLS, false);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_MESSAGES, false);
+		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_ESM, false);
+		Intent refresh = new Intent(Aware.ACTION_AWARE_REFRESH);
+		sendBroadcast(refresh);
+		//Deactive the plugins
+		
+//		Intent noise = new Intent(this, com.aware.plugin.noise_level.Plugin.class);
+//	    stopService(noise);
+  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
+  	    stopService(mot);
+//  		Intent rel_noise = new Intent(this, com.aware.plugin.ambient_noise.Plugin.class);
+//  	    stopService(rel_noise);
+	}
+	
+	/**
 	 * This is an alarm for the retrospective question for mode of transportation 
 	 * that could have been detected earlier in the day
 	 */
@@ -630,272 +897,5 @@ public class Plugin extends Aware_Plugin {
 ////    Log.i("Service not","running");
 ////    return false;
 //}
-	
-	/**
-	 * Code here when add-on is turned on.
-	 */
-	@SuppressLint("NewApi")
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		TAG = "AWARE::Mobile Sensor";
-		startAwareSensors();
-		startAwarePlugins();
-		startAlarms();
-		startContentObservers();
-//		isMyServiceRunning(com.aware.plugin.noise_level.Plugin.class, getApplicationContext());
-//		isMyServiceRunning(com.aware.plugin.modeoftransportation.Plugin.class, getApplicationContext());
-		//Shares this plugin’s context to AWARE and applications
-		CONTEXT_PRODUCER = new ContextProducer() {
-			@SuppressLint("SimpleDateFormat")
-			@Override
-			public void onContext() {
-				if(null != participantID && Plugin.screenIsOn && Settings.isInitialized()){
-					//change this to debug any sensor and if they're being inserted when sensed
-					Calendar newCal = new GregorianCalendar();
-					SimpleDateFormat sdf = new SimpleDateFormat("M-dd-yyyy");
-					String date = sdf.format(newCal.getTime());
-//					Log.d("Time","Date: "+date);
-					SimpleDateFormat sdf2 = new SimpleDateFormat("k:mm:ss");
-					long timestamp = System.currentTimeMillis();
-					String timestampString = sdf2.format(new Date(System.currentTimeMillis()));
-					deviceID = Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID);
-//					String context = ""+date+","+timestampString+","+participantID+","+device+","+multitasking+","+movement+","+noise_level+","+ambient_noise+","+voice_messaging
-//							+","+text_messaging+","+email+","+calendar_event+","+rating+","+loudnessRating;
-					String context = ""+date+","+timestampString+","+participantID+","+deviceID+","+multitasking+","+movement+","+noise_level+","+voice_messaging
-							+","+text_messaging+","+email+","+calendar_event+","+installations+","+rating+","+loudnessRating;
-					createOutput(context);
-					ContentValues context_data = new ContentValues();
-					context_data.put(MobileSensor_Data.TIMESTAMP, timestamp);
-					context_data.put(MobileSensor_Data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
-					context_data.put(MobileSensor_Data.MULTITASKING, multitasking);
-					context_data.put(MobileSensor_Data.MOT, movement);
-					context_data.put(MobileSensor_Data.NOISE_LEVEL, noise_level);
-//					context_data.put(MobileSensor_Data.AMBIENT_NOISE, ambient_noise);
-					context_data.put(MobileSensor_Data.CALLS, voice_messaging);
-					context_data.put(MobileSensor_Data.MESSAGING, text_messaging);
-					context_data.put(MobileSensor_Data.CALENDAR, calendar_event);
-					context_data.put(MobileSensor_Data.EMAIL, email);
-					context_data.put(MobileSensor_Data.INSTALLATIONS, installations);
-					//insert data to table MobileSensor_Data
-					getContentResolver().insert(MobileSensor_Data.CONTENT_URI, context_data);
-					
-					Intent sharedContext = new Intent(ACTION_AWARE_PLUGIN_MOBILE_SENSOR);
-					sharedContext.putExtra(EXTRA_MULTITASKING, multitasking);
-					sharedContext.putExtra(EXTRA_MOT, movement);
-					sharedContext.putExtra(EXTRA_ABS_NOISE, noise_level);
-//					sharedContext.putExtra(EXTRA_REL_NOISE, ambient_noise);
-					sharedContext.putExtra(EXTRA_CALLS, voice_messaging);
-					sharedContext.putExtra(EXTRA_MESSAGING, text_messaging);
-					sharedContext.putExtra(EXTRA_CALENDAR, calendar_event);
-					sharedContext.putExtra(EXTRA_EMAIL, email);
-					sharedContext.putExtra(EXTRA_INSTALLATIONS, installations);
-					sendBroadcast(sharedContext);
-					rating = null;
-					loudnessRating = null;
-				}
-			}
-		};
-		
-		//Our provider tables
-		DATABASE_TABLES = MobileSensor_Provider.DATABASE_TABLES;
-		//Our table fields
-		TABLES_FIELDS = MobileSensor_Provider.TABLES_FIELDS;
-		//Our provider URI
-		CONTEXT_URIS = new Uri[]{ MobileSensor_Data.CONTENT_URI };
-	}
-	
-	public void startAwareSensors(){
-		Intent aware = new Intent(this, Aware.class);
-	    startService(aware);
-	    //Activate core sensors
-		Aware.setSetting(getApplicationContext(), STATUS_PLUGIN_MOBILE_SENSOR, true);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_SCREEN, true);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_INSTALLATIONS, true);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_APPLICATIONS, true);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_CALLS, true);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_MESSAGES, true);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_ESM, true);
-		Aware.setSetting(this, Aware_Preferences.DEBUG_FLAG, true);
-		Intent apply = new Intent(Aware.ACTION_AWARE_REFRESH);
-		sendBroadcast(apply);
-	}
-	
-	public void startAwarePlugins(){
-		//Activate plugins
-//  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
-//  	    startService(mot);
-//  		Intent rel_noise = new Intent(this, com.aware.plugin.ambient_noise.Plugin.class);
-//  	    startService(rel_noise);
-		//Initialize Screen/Multitasking/MoT/Noise vars
-		screenOnTime = System.currentTimeMillis();
-		lastNegativeESM = screenOnTime;
-		lastThrottleTime = screenOnTime;
-		screenIsOn = true;
-	}
-	
-	/**
-	 * Calendar events alarm and MoT alarm
-	 */
-	public void startAlarms(){
-		thread_cal_alarm.start();
-		thread_calendar_alarms = new ArrayList<Handler>();
-		event_alarms = new ArrayList<Runnable>();
-		Plugin.lastCalendarESM = screenOnTime;
-		//Alarm for the MoT Esm question
-		thread_esm_alarm = new Handler(thread_cal_alarm.getLooper());
-		thread_esm_alarm.postDelayed(esmAlarm, 5000);
-		//Alarm for setting up events for Calendar
-		thread_calSetup = new Handler(thread_cal_alarm.getLooper());
-		thread_calSetup.postDelayed(setUpEvents, 1000);
-	}
-	
-	/**
-	 * Initialize the multithread handler manager for ContentObservers and
-	 * initialize the context observers for the sensors
-	 */
-	@SuppressLint("NewApi")
-	public void startContentObservers(){
-		//Register the sensor handler thread with the handler managers
-		
-		//Multitasking
-		thread_multitasking.start();
-		thread_sensor_multi = new Handler(thread_multitasking.getLooper());
-		multitask_observer = new MultitaskingObserver(thread_sensor_multi, this);
-		MultitaskingObserver.lastMultiESM = screenOnTime;
-		MultitaskingObserver.lastEmailESM = screenOnTime;
-		
-		//MoT
-		thread_mot.start();
-		thread_sensor_mot = new Handler(thread_mot.getLooper());
-		mot_observer = new MoTObserver(thread_sensor_mot, this);
-		
-		//NoiseLevel
-//		thread_sensor_noise = new Handler(thread_handler.getLooper());
-		//Initialize the context observers with the sensor thread for performance
-//		noise_observer = new NoiseObserver(thread_sensor_noise, this);
-//		NoiseObserver.lastNoisyESM = screenOnTime;
-		
-		//Phone 
-		thread_phone.start();
-		thread_sensor_phone = new Handler(thread_phone.getLooper());
-		phone_observer = new VoiceCallObserver(thread_sensor_phone, this);
-		VoiceCallObserver.lastVoiceESM = screenOnTime;
-		
-		//Text Messaging
-		thread_messages.start();
-		thread_sensor_messages = new Handler(thread_messages.getLooper());
-		messages_observer = new MessageObserver(thread_sensor_messages, this);
-		MessageObserver.lastMessageESM = screenOnTime;
-		
-		//Installations
-		thread_install.start();
-		thread_sensor_install = new Handler(thread_install.getLooper());
-		install_observer = new InstallationsObserver(thread_sensor_install, this);
-		
-		//ESM
-		thread_esm.start();
-		thread_sensor_esm = new Handler(thread_esm.getLooper());
-		esm_observer = new ESMObserver(thread_sensor_esm, this);
-		
-		//Calendar
-		thread_calendar.start();
-		thread_observer_calendar = new Handler(thread_calendar.getLooper());
-		calendar_observer = new CalendarObserver(thread_observer_calendar, this);
-		
-		//Screen
-		thread_screen.start();
-		thread_sensor_screen = new Handler(thread_screen.getLooper());
-		//create a context filter for screen
-		IntentFilter screenFilter = new IntentFilter();
-		screenFilter.addAction(Screen.ACTION_AWARE_SCREEN_ON);
-		screenFilter.addAction(Screen.ACTION_AWARE_SCREEN_OFF);
-		screenListener = new ScreenObserver(this);
-		
-		//Ambient noise
-//		thread_sensor_ambient_noise = new Handler(thread_handler.getLooper());
-//		ambient_noise_observer = new AmbientNoiseObserver(thread_sensor_ambient_noise, this);
-//		ambient_noise_observer.setLastAmbientESM(screenOnTime);
-		
-		//Ask Android to register our context receiver
-		registerReceiver(screenListener, screenFilter, null, thread_sensor_screen);
-		//Start listening to changes on the Applications_Foreground, MoT, and NoiseLevel databases
-		getContentResolver().registerContentObserver(Applications_Foreground.CONTENT_URI, true, multitask_observer);
-		getContentResolver().registerContentObserver(MoT.CONTENT_URI, true, mot_observer);
-		getContentResolver().registerContentObserver(Installations_Data.CONTENT_URI, true, install_observer);
-//		getContentResolver().registerContentObserver(NoiseLevel.CONTENT_URI, true, noise_observer);
-//		getContentResolver().registerContentObserver(AmbientNoise_Data.CONTENT_URI, true, ambient_noise_observer);
-		getContentResolver().registerContentObserver(Calls_Data.CONTENT_URI, true, phone_observer);
-		getContentResolver().registerContentObserver(Messages_Data.CONTENT_URI, true, messages_observer);
-		getContentResolver().registerContentObserver(ESM_Data.CONTENT_URI, true, esm_observer);
-		getContentResolver().registerContentObserver(Reminders.CONTENT_URI, true, calendar_observer);
-	}
-		
-	/**
-	 * Code here when add-on is turned off.
-	 */
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-//		Log.d("service","mobile sensor being destroyed!");
-		participantID = null;
-		deviceID = null;
-		unregisterReceiver(screenListener);
-		//unregister our Applications, MoT, Noise Level, Communications context observers from Android
-		getContentResolver().unregisterContentObserver(multitask_observer);
-		getContentResolver().unregisterContentObserver(mot_observer);
-//		getContentResolver().unregisterContentObserver(noise_observer);
-		getContentResolver().unregisterContentObserver(phone_observer);
-		getContentResolver().unregisterContentObserver(messages_observer);
-		getContentResolver().unregisterContentObserver(esm_observer);
-		getContentResolver().unregisterContentObserver(calendar_observer);
-//		getContentResolver().unregisterContentObserver(ambient_noise_observer);
-		
-		//stop listening to changes in the database(s)
-		thread_sensor_screen.removeCallbacksAndMessages(null);
-		thread_sensor_multi.removeCallbacksAndMessages(null);
-		thread_sensor_mot.removeCallbacksAndMessages(null);
-//		thread_sensor_noise.removeCallbacksAndMessages(null);
-		thread_sensor_messages.removeCallbacksAndMessages(null);
-		thread_sensor_esm.removeCallbacksAndMessages(null);
-		thread_esm_alarm.removeCallbacksAndMessages(null);
-		thread_observer_calendar.removeCallbacksAndMessages(null);
-		thread_sensor_install.removeCallbacksAndMessages(null);
-		
-		if(thread_calendar_alarms.size() != 0){
-			for(Handler h : thread_calendar_alarms){
-				h.removeCallbacksAndMessages(null);
-			}
-			thread_calendar_alarms.clear();
-		}
-		
-		thread_multitasking.quitSafely();
-		thread_mot.quitSafely();
-		thread_messages.quitSafely();
-		thread_phone.quitSafely();
-		thread_esm.quitSafely();
-		thread_calendar.quitSafely();
-		thread_screen.quitSafely();
-		thread_install.quitSafely();
-		
-		//Deactivate the sensors
-		Aware.setSetting(getApplicationContext(), STATUS_PLUGIN_MOBILE_SENSOR, false);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_SCREEN, false);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_INSTALLATIONS, false);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_APPLICATIONS, false);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_CALLS, false);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_MESSAGES, false);
-		Aware.setSetting(getApplicationContext(), Aware_Preferences.STATUS_ESM, false);
-		Intent refresh = new Intent(Aware.ACTION_AWARE_REFRESH);
-		sendBroadcast(refresh);
-		//Deactive the plugins
-		
-//		Intent noise = new Intent(this, com.aware.plugin.noise_level.Plugin.class);
-//	    stopService(noise);
-  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
-  	    stopService(mot);
-//  		Intent rel_noise = new Intent(this, com.aware.plugin.ambient_noise.Plugin.class);
-//  	    stopService(rel_noise);
-	}
 	
 }
