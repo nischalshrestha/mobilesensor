@@ -1,3 +1,3 @@
-# mobilesensor
+# Mobile Sensor
 
-An experimental app to determine the factors that cause user stress
+Makes use of the AWARE framework: https://github.com/denzilferreira/aware-client
