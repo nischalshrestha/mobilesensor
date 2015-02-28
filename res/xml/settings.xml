@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+ 
+    <PreferenceCategory android:title="pref_user_profile" >
+        <EditTextPreference
+                android:title="Noise Sensor"
+                android:summary="pref_user_name_summary"
+                android:key="prefUsername"/>
+    </PreferenceCategory>
+    
+</PreferenceScreen>

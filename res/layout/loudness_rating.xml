@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" xmlns:app="http://schemas.android.com/apk/res/com.aware.plugin.mobile_sensor">
+    
+    
+    <TextView
+        android:id="@+id/textView1" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Rate how loud your environment is:"
+        android:textAppearance="?android:attr/textAppearanceSmall" 
+        android:textColor="#ff000000"/>
+    	
+    
+    <com.infteh.comboseekbar.ComboSeekBar
+        android:id="@+id/seekbar"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        app:multiline="false"
+        app:textSize="12sp"
+        app:color="#ff33b5e5"
+        >
+      	</com.infteh.comboseekbar.ComboSeekBar>
+      	
+     <LinearLayout
+	    android:layout_height="wrap_content"
+	    android:layout_width="fill_parent"
+	    android:orientation="horizontal"
+	    android:weightSum="7">
+		    <TextView
+		        android:layout_height="wrap_content"
+		        android:layout_width="wrap_content"
+		        android:layout_gravity="left"
+		        android:text="Silent"
+		        android:textSize="12sp"
+		        android:textColor="#ff000000"
+		        android:layout_weight="0.5"
+		        />
+		    <TextView
+		        android:layout_height="wrap_content"
+		        android:layout_width="wrap_content"
+		        android:text="Quiet"
+		        android:layout_gravity="left"
+		        android:textSize="12sp"
+		        android:textColor="#ff000000"
+		        android:layout_weight="6.4"
+		        />
+		    <TextView
+		        android:layout_height="wrap_content"
+		        android:layout_width="wrap_content"
+		        android:layout_gravity="right"
+		        android:text="Disturbingly Loud"
+		        android:textSize="12sp"
+		        android:textColor="#ff000000"
+		        android:layout_weight="0.1"
+		        />
+	</LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:gravity="center|bottom"
+        android:orientation="vertical" >
+	    <Button
+	        android:id="@+id/level_ok"
+	        android:layout_width="100dp"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center|bottom"
+	        android:layout_marginBottom="20dp"
+	        android:text="OK" />
+    </LinearLayout>
+			
+</LinearLayout>

@@ -1,0 +1,36 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    tools:context="com.aware.plugin.mobile_sensor.activities.Settings" >
+
+    <!--  
+    <PreferenceCategory android:title="Global Settings" tools:ignore="HardcodedText">
+        <EditTextPreference
+                android:title="Throttle"
+                android:summary="Set frequency of user prompts in hours"
+                android:defaultValue="1"
+                android:key="prefGlobalThrottle"/>
+    </PreferenceCategory>
+    -->
+    
+    <PreferenceCategory
+        android:title="Noise Sensor"
+        tools:ignore="HardcodedText" >
+        <EditTextPreference
+                android:title="Device Calibration"
+                android:summary="Password required"
+                android:key="prefNoiseCalibration"/>
+    </PreferenceCategory>
+    
+    
+     <PreferenceCategory
+        android:title="Time Elapsed"
+        tools:ignore="HardcodedText" >
+        <EditTextPreference
+                android:title="Look at time elapsed for sensors"
+                android:summary="For password: enter in something different every time"
+                android:key="prefTimeElapsed"/>
+    </PreferenceCategory>
+    
+</PreferenceScreen>
