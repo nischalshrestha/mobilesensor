@@ -62,7 +62,7 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 
 	
 	static Settings activity = null;
-	private final static long HOUR = 3600000;
+//	private final static long HOUR = 3600000;
 	private boolean registered = false;
 	private static boolean initialized = false;
 	private long downloadID;
@@ -139,11 +139,7 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 		addPreferencesFromResource(R.layout.activity_settings);
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefs.registerOnSharedPreferenceChangeListener(this);
-		if(!appInstalledOrNot("com.aware")){
-			waitingDialog = ProgressDialog.show(Settings.this, "Downloading AWARE client",
-	    		    "Please wait a few seconds...", true);
-			new Download_Client().execute();
-		}
+		
 	}
 	
 	private class Download_Client extends AsyncTask<Void, Void, Boolean> {
@@ -227,18 +223,21 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 		//Enter the participant ID
 		final EditText inputID = new EditText(Settings.this);
 		final AlertDialog idDialog =  new AlertDialog.Builder(Settings.this).create();
-		idDialog.setTitle("Device Name");
+//		idDialog.setTitle("Device Name");
+		idDialog.setTitle("Participant ID");
 		idDialog.setMessage("Please enter the participant ID");
 		idDialog.setButton("Ok", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				Plugin.participantID = inputID.getText().toString();
-				String attributes = "Date, Timestamp, Participant ID, Device ID, Multitasking, Mode of Transportation, Noise Level, Voice Call,"
+				String attributes = "Date, Timestamp, Participant ID, Multitasking, Mode of Transportation, Noise Level, Voice Call,"
 						+ "Text Messaging, Email, Calendar Event, Installations, Stress Rating, Loudness Rating";
 				try {
-					File exists = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+Plugin.outputFile);
+//					File exists = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+Plugin.outputFile);
+					File exists = new File(Environment.getExternalStorageDirectory() + "/AWARE" + Plugin.outputFile);
 					if(!exists.exists()){
-						FileWriter writer = new FileWriter(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+Plugin.outputFile,true);
+//						FileWriter writer = new FileWriter(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+Plugin.outputFile,true);
+						FileWriter writer = new FileWriter(Environment.getExternalStorageDirectory() + "/AWARE" + Plugin.outputFile,true);
 						writer.append(attributes+"\n");
 			    		writer.flush();
 			    		writer.close();
@@ -288,7 +287,11 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	@Override
     protected void onResume() {
         super.onResume();
-        if(activity == null && appInstalledOrNot("com.aware")){
+        if(!appInstalledOrNot("com.aware")){
+			waitingDialog = ProgressDialog.show(Settings.this, "Downloading AWARE client",
+	    		    "Please wait a few seconds...", true);
+			new Download_Client().execute();
+	} else if(activity == null){
         	initialize();
         }
         //Checking if services are running
@@ -344,18 +347,19 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 			} else{
 				Toast.makeText(getApplicationContext(), "Wrong password!", Toast.LENGTH_LONG).show();
 			}
-		} else if( preference.getKey().equals("prefTimeElapsed")) {
-//			Log.d("Settings",sharedPreferences.getString("prefTimeElapsed", "NULL"));
-//			if(sharedPreferences.getString("prefNoiseCalibration","NULL").equals("pass")){
-//				Intent intent = new Intent(this, NoiseCalibrationActivity.class);
-//				intent.putExtra("Class",Plugin.class);
-//				startActivity(intent);
-//			} else{
-//				Toast.makeText(getApplicationContext(), "Wrong password!", Toast.LENGTH_LONG).show();
-//			}
-			Intent i = new Intent(this, TimeElapsedActivity.class);
-			startActivity(i);
 		}
+//		else if( preference.getKey().equals("prefTimeElapsed")) {
+////			Log.d("Settings",sharedPreferences.getString("prefTimeElapsed", "NULL"));
+////			if(sharedPreferences.getString("prefNoiseCalibration","NULL").equals("pass")){
+////				Intent intent = new Intent(this, NoiseCalibrationActivity.class);
+////				intent.putExtra("Class",Plugin.class);
+////				startActivity(intent);
+////			} else{
+////				Toast.makeText(getApplicationContext(), "Wrong password!", Toast.LENGTH_LONG).show();
+////			}
+//			Intent i = new Intent(this, TimeElapsedActivity.class);
+//			startActivity(i);
+//		}
 	}
 
 }
