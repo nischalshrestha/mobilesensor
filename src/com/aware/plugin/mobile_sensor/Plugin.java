@@ -31,6 +31,7 @@ import com.aware.Screen;
 import com.aware.plugin.mobile_sensor.MobileSensor_Provider.MobileSensor_Data;
 import com.aware.plugin.mobile_sensor.activities.Settings;
 import com.aware.plugin.mobile_sensor.calendar.CalendarEvent;
+//import com.aware.plugin.mobile_sensor.observers.AmbientNoiseObserver;
 import com.aware.plugin.mobile_sensor.calendar.CalendarObserver;
 import com.aware.plugin.mobile_sensor.observers.ESMObserver;
 import com.aware.plugin.mobile_sensor.observers.InstallationsObserver;
@@ -38,6 +39,7 @@ import com.aware.plugin.mobile_sensor.observers.MessageObserver;
 import com.aware.plugin.mobile_sensor.observers.MoTObserver;
 import com.aware.plugin.mobile_sensor.observers.MultitaskingObserver;
 import com.aware.plugin.mobile_sensor.observers.NoiseObserver;
+//import com.aware.plugin.mobile_sensor.observers.NoiseObserver;
 import com.aware.plugin.mobile_sensor.observers.ScreenObserver;
 import com.aware.plugin.mobile_sensor.observers.VoiceCallObserver;
 import com.aware.plugin.modeoftransportation.MoT_Provider.MoT;
@@ -101,15 +103,15 @@ public class Plugin extends Aware_Plugin {
 	 * A multi-thread handler manager and the relevant sensor threads.
 	 */
 //	public static HandlerThread thread_handler = null;
-	public static HandlerThread thread_multitasking = new HandlerThread("Multitasking");
-	public static HandlerThread thread_mot = new HandlerThread("MoT");
-	public static HandlerThread thread_phone = new HandlerThread("Phone");
-	public static HandlerThread thread_messages = new HandlerThread("Messaging");
-	public static HandlerThread thread_esm = new HandlerThread("ESM");
-	public static HandlerThread thread_calendar = new HandlerThread("Calendar");
-	public static HandlerThread thread_screen = new HandlerThread("Screen");
-	public static HandlerThread thread_cal_alarm = new HandlerThread("Calendar_Alarm");
-	public static HandlerThread thread_install = new HandlerThread("Installations");
+	public static HandlerThread thread_multitasking;
+	public static HandlerThread thread_mot;
+	public static HandlerThread thread_phone;
+	public static HandlerThread thread_messages;
+	public static HandlerThread thread_esm;
+	public static HandlerThread thread_calendar;
+	public static HandlerThread thread_screen;
+	public static HandlerThread thread_cal_alarm;
+	public static HandlerThread thread_install;
 	
 	public static Handler thread_sensor_screen = null;
 	public static Handler thread_sensor_multi = null;
@@ -199,9 +201,12 @@ public class Plugin extends Aware_Plugin {
 		super.onCreate();
 		TAG = "AWARE::Mobile Sensor";
 		startAwareSensors();
+		initializeThreads();
 		startAwarePlugins();
 		startAlarms();
 		startContentObservers();
+//		isMyServiceRunning(com.aware.plugin.noise_level.Plugin.class, getApplicationContext());
+//		isMyServiceRunning(com.aware.plugin.modeoftransportation.Plugin.class, getApplicationContext());
 		//Shares this plugin’s context to AWARE and applications
 		CONTEXT_PRODUCER = new ContextProducer() {
 			@SuppressLint("SimpleDateFormat")
@@ -219,7 +224,7 @@ public class Plugin extends Aware_Plugin {
 					deviceID = Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID);
 //					String context = ""+date+","+timestampString+","+participantID+","+device+","+multitasking+","+movement+","+noise_level+","+ambient_noise+","+voice_messaging
 //							+","+text_messaging+","+email+","+calendar_event+","+rating+","+loudnessRating;
-					String context = ""+date+","+timestampString+","+participantID+","+deviceID+","+multitasking+","+movement+","+noise_level+","+voice_messaging
+					String context = ""+date+","+timestampString+","+participantID+","+multitasking+","+movement+","+noise_level+","+voice_messaging
 							+","+text_messaging+","+email+","+calendar_event+","+installations+","+rating+","+loudnessRating;
 					createOutput(context);
 					ContentValues context_data = new ContentValues();
@@ -262,6 +267,18 @@ public class Plugin extends Aware_Plugin {
 		CONTEXT_URIS = new Uri[]{ MobileSensor_Data.CONTENT_URI };
 	}
 	
+	private void initializeThreads(){
+		thread_multitasking = new HandlerThread("Multitasking");
+		thread_mot = new HandlerThread("MoT");
+		thread_phone = new HandlerThread("Phone");
+		thread_messages = new HandlerThread("Messaging");
+		thread_esm = new HandlerThread("ESM");
+		thread_calendar = new HandlerThread("Calendar");
+		thread_screen = new HandlerThread("Screen");
+		thread_cal_alarm = new HandlerThread("Calendar_Alarm");
+		thread_install = new HandlerThread("Installations");
+	}
+	
 	public void startAwareSensors(){
 		Intent aware = new Intent(this, Aware.class);
 	    startService(aware);
@@ -280,8 +297,8 @@ public class Plugin extends Aware_Plugin {
 	
 	public void startAwarePlugins(){
 		//Activate plugins
-//  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
-//  	    startService(mot);
+  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
+  	    startService(mot);
 //  		Intent rel_noise = new Intent(this, com.aware.plugin.ambient_noise.Plugin.class);
 //  	    startService(rel_noise);
 		//Initialize Screen/Multitasking/MoT/Noise vars
@@ -295,7 +312,12 @@ public class Plugin extends Aware_Plugin {
 	 * Calendar events alarm and MoT alarm
 	 */
 	public void startAlarms(){
-		thread_cal_alarm.start();
+		if(!Settings.isInitialized()){
+			thread_cal_alarm.start();
+		}else{
+			thread_cal_alarm = new HandlerThread("Calendar_Alarm");
+			thread_cal_alarm.start();
+		}
 		thread_calendar_alarms = new ArrayList<Handler>();
 		event_alarms = new ArrayList<Runnable>();
 		Plugin.lastCalendarESM = screenOnTime;
@@ -426,14 +448,24 @@ public class Plugin extends Aware_Plugin {
 			thread_calendar_alarms.clear();
 		}
 		
-		thread_multitasking.quitSafely();
-		thread_mot.quitSafely();
-		thread_messages.quitSafely();
-		thread_phone.quitSafely();
-		thread_esm.quitSafely();
-		thread_calendar.quitSafely();
-		thread_screen.quitSafely();
-		thread_install.quitSafely();
+		thread_multitasking.interrupt();
+		thread_multitasking = null;
+		thread_mot.interrupt();
+		thread_mot = null;
+		thread_messages.interrupt();
+		thread_messages = null;
+		thread_phone.interrupt();
+		thread_phone = null;
+		thread_esm.interrupt();
+		thread_esm = null;
+		thread_calendar.interrupt();
+		thread_calendar = null;
+		thread_screen.interrupt();
+		thread_screen = null;
+		thread_install.interrupt();
+		thread_install = null;
+		thread_cal_alarm.interrupt();
+		thread_cal_alarm = null;
 		
 		//Deactivate the sensors
 		Aware.setSetting(getApplicationContext(), STATUS_PLUGIN_MOBILE_SENSOR, false);
@@ -574,12 +606,26 @@ public class Plugin extends Aware_Plugin {
 				}
 			}
 			if(existingEvent == 0){
+//				Handler newAlarm = new Handler(thread_handler.getLooper());
 				HandlerThread alarm = new HandlerThread("Calendar");
 				alarm.start();
 				Handler newAlarm = new Handler(alarm.getLooper());
 				thread_calendar_alarms.add(id,newAlarm);
+//				Log.d("CalendarAlarm","Adding: "+event.getTitle()+" at idx: "+id);
+//				Log.d("CalendarAlarm","Begin: "+event.getBegin());
+//				Log.d("CalendarAlarm","Reminder to subtract: "+(event.getMaxReminder()*60000));
+//				Log.d("CalendarAlarm","Begin-Reminder+2min: "+((event.getBegin()-(event.getMaxReminder()*60000))+120000));
+//				Log.d("CalendarAlarm","Size of thread list after adding: "+thread_calendar_alarms.size());
 			}
+//			Log.d("CalendarAlarm","**********");
+//			//print list
+//			for(CalendarEvent e : eventList){
+//				Log.d("CalendarAlarm",e.getTitle());
+//			}
+//			Log.d("CalendarAlarm","Size of event list after adding: "+eventList.size());
+//			Log.d("CalendarAlarm","**********");
 			long nextAlarm = ((event.begin-(event.maxReminder*60000))+120000) - System.currentTimeMillis();
+//			Log.d("CalendarAlarm","Delay for pre-alarm: "+nextAlarm);
 			thread_calendar_alarms.get(id).postDelayed(calendarAlarm, nextAlarm);
 		}
 	}
@@ -589,12 +635,28 @@ public class Plugin extends Aware_Plugin {
 	 * @param id
 	 */
 	public void stopCalendarAlarm(int id){
+//		Log.d("CalendarAlarm","**********");
+//		Log.d("CalendarAlarm","Removing: "+eventList.get(id).getTitle());
 		eventList.remove(id);
 		thread_calendar_alarms.get(id).removeCallbacksAndMessages(null);
 		thread_calendar_alarms.remove(id);
+//		Log.d("CalendarAlarm","Size of thread list after removing: "+thread_calendar_alarms.size());
+		//print list
+//		for(CalendarEvent e : eventList){
+//			Log.d("CalendarAlarm",e.getTitle());
+//		}
+//		Log.d("CalendarAlarm","Size of event list after removing: "+eventList.size());
+//		Log.d("CalendarAlarm","**********");
+//		Log.d("CalendarAlarm","Attempting next alarm!");
 		if(eventList.size() > 0){
+//			Log.d("CalendarAlarm","There's one more! size: "+eventList.size());
+//			Log.d("CalendarAlarm","Starting next alarm!");
 			startCalendarAlarm(id);
 		} 
+//		else{
+////			Log.d("CalendarAlarm","No more events!");
+//		}
+//		Log.d("CalendarAlarm","**********");
 	}
 
 	/**
@@ -752,17 +814,34 @@ public class Plugin extends Aware_Plugin {
 			} if(calendar != null && ! calendar.isClosed() ) calendar.close();
 			//Run this again when you reach 12:30am either today or the next day
 			long current = System.currentTimeMillis();
+//			Log.d("EventList","**********");
+//			//print list
+//			for(CalendarEvent event : eventList){
+//				Log.d("EventList",event.getTitle());
+//			}
+//			Log.d("EventList","size: "+eventList.size());
+//			Log.d("EventList","**********");
 			if(eventList.size() > 0)
 				startCalendarAlarm(0);
 			thread_calSetup.postDelayed(this, (stop-current));
 		}
 	};
 	
+//	/**
+//	 * 
+//	 * @return
+//	 */
+//	public ArrayList<CalendarEvent> getCalEvents(){
+//		return eventList;
+//	}
+	
 	/**
 	 * 
 	 * @param e
 	 */
 	public void addEvent(CalendarEvent e){
+//		Log.d("EventList","**********");
+//		Log.d("EventList","Inside addEvent");
 		int ID = 0;
 		if(!eventList.contains(e)){
 			//Add to an index
@@ -778,16 +857,31 @@ public class Plugin extends Aware_Plugin {
 			if(i == eventList.size()){
 				eventList.add(e);
 			}
+//			//print list
+//			for(CalendarEvent event : eventList){
+//				Log.d("EventList",event.getTitle());
+//			}
+//			Log.d("EventList","size: "+eventList.size());
+//			Log.d("EventList","**********");
 			startCalendarAlarm(ID);
 		}
 	}
 	
 	public void removeEvent(int id){
+//		Log.d("EventList","**********");
+//		Log.d("EventList","Inside removeEvent");
 		eventList.remove(id);
 		if(thread_calendar_alarms.size() > id){
 			thread_calendar_alarms.get(id).removeCallbacksAndMessages(null);
 			thread_calendar_alarms.remove(id);
+//			Log.d("EventList","Size of thread list after removing: "+thread_calendar_alarms.size());
 		}
+//		//print list
+//		for(CalendarEvent event : eventList){
+//			Log.d("EventList",event.getTitle());
+//		}
+//		Log.d("EventList","Size of event list after removing: "+eventList.size());
+//		Log.d("EventList","**********");
 	}
 	
 	/**
@@ -803,7 +897,8 @@ public class Plugin extends Aware_Plugin {
 	 */
 	private void createOutput(String summary){
 		try {
-			FileWriter writer = new FileWriter(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+outputFile,true);
+//			FileWriter writer = new FileWriter(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+outputFile,true);
+			FileWriter writer = new FileWriter(Environment.getExternalStorageDirectory() + "/AWARE" + Plugin.outputFile,true);
 			writer.append(summary+"\n");
     		writer.flush();
     		writer.close();
@@ -811,5 +906,25 @@ public class Plugin extends Aware_Plugin {
 			e.printStackTrace();
 		}
 	}
+	
+//	private boolean isMyServiceRunning(Class<?> serviceClass,Context context) {
+//	private void isMyServiceRunning(Class<?> serviceClass,Context context) {
+//    ActivityManager manager = (ActivityManager)context. getSystemService(Context.ACTIVITY_SERVICE);
+//    int i = 0;
+//    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+////    	if(service.service.getClassName().contains("aware")){
+////    		Log.d("Service",service.service.getClassName());
+////    		i++;
+////    	}
+//        if (serviceClass.getName().equals(service.service.getClassName())) {
+////            Log.i("Service already","running");
+//            Log.d("Service",serviceClass.getName()+" is running "+i);
+////            return true;
+//        }
+//    }	
+//    Log.d("Service",serviceClass.getName()+" isn't running "+i);
+////    Log.i("Service not","running");
+////    return false;
+//}
 	
 }
