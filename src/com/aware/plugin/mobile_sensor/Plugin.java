@@ -102,16 +102,15 @@ public class Plugin extends Aware_Plugin {
 	/**
 	 * A multi-thread handler manager and the relevant sensor threads.
 	 */
-//	public static HandlerThread thread_handler = null;
-	public static HandlerThread thread_multitasking = new HandlerThread("Multitasking");
-	public static HandlerThread thread_mot = new HandlerThread("MoT");
-	public static HandlerThread thread_phone = new HandlerThread("Phone");
-	public static HandlerThread thread_messages = new HandlerThread("Messaging");
-	public static HandlerThread thread_esm = new HandlerThread("ESM");
-	public static HandlerThread thread_calendar = new HandlerThread("Calendar");
-	public static HandlerThread thread_screen = new HandlerThread("Screen");
-	public static HandlerThread thread_cal_alarm = new HandlerThread("Calendar_Alarm");
-	public static HandlerThread thread_install = new HandlerThread("Installations");
+	public static HandlerThread thread_multitasking;
+	public static HandlerThread thread_mot;
+	public static HandlerThread thread_phone;
+	public static HandlerThread thread_messages;
+	public static HandlerThread thread_esm;
+	public static HandlerThread thread_calendar;
+	public static HandlerThread thread_screen;
+	public static HandlerThread thread_cal_alarm;
+	public static HandlerThread thread_install;
 	
 	public static Handler thread_sensor_screen = null;
 	public static Handler thread_sensor_multi = null;
@@ -129,8 +128,6 @@ public class Plugin extends Aware_Plugin {
 	private ArrayList<Handler> thread_calendar_alarms;
 	private ArrayList<Runnable> event_alarms;
 	private static Handler thread_calSetup;
-//	private static ContextProducer sContext;
-//	public static Handler thread_sensor_email;
 	
 	/**
 	 * The Context Observers
@@ -201,11 +198,10 @@ public class Plugin extends Aware_Plugin {
 		super.onCreate();
 		TAG = "AWARE::Mobile Sensor";
 		startAwareSensors();
+		initializeThreads();
 		startAwarePlugins();
 		startAlarms();
 		startContentObservers();
-//		isMyServiceRunning(com.aware.plugin.noise_level.Plugin.class, getApplicationContext());
-//		isMyServiceRunning(com.aware.plugin.modeoftransportation.Plugin.class, getApplicationContext());
 		//Shares this plugin’s context to AWARE and applications
 		CONTEXT_PRODUCER = new ContextProducer() {
 			@SuppressLint("SimpleDateFormat")
@@ -221,9 +217,7 @@ public class Plugin extends Aware_Plugin {
 					long timestamp = System.currentTimeMillis();
 					String timestampString = sdf2.format(new Date(System.currentTimeMillis()));
 					deviceID = Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID);
-//					String context = ""+date+","+timestampString+","+participantID+","+device+","+multitasking+","+movement+","+noise_level+","+ambient_noise+","+voice_messaging
-//							+","+text_messaging+","+email+","+calendar_event+","+rating+","+loudnessRating;
-					String context = ""+date+","+timestampString+","+participantID+","+deviceID+","+multitasking+","+movement+","+noise_level+","+voice_messaging
+					String context = ""+date+","+timestampString+","+participantID+","+multitasking+","+movement+","+noise_level+","+voice_messaging
 							+","+text_messaging+","+email+","+calendar_event+","+installations+","+rating+","+loudnessRating;
 					createOutput(context);
 					ContentValues context_data = new ContentValues();
@@ -240,7 +234,7 @@ public class Plugin extends Aware_Plugin {
 					context_data.put(MobileSensor_Data.INSTALLATIONS, installations);
 					//insert data to table MobileSensor_Data
 					getContentResolver().insert(MobileSensor_Data.CONTENT_URI, context_data);
-					
+					//share context
 					Intent sharedContext = new Intent(ACTION_AWARE_PLUGIN_MOBILE_SENSOR);
 					sharedContext.putExtra(EXTRA_MULTITASKING, multitasking);
 					sharedContext.putExtra(EXTRA_MOT, movement);
@@ -266,6 +260,18 @@ public class Plugin extends Aware_Plugin {
 		CONTEXT_URIS = new Uri[]{ MobileSensor_Data.CONTENT_URI };
 	}
 	
+	private void initializeThreads(){
+		thread_multitasking = new HandlerThread("Multitasking");
+		thread_mot = new HandlerThread("MoT");
+		thread_phone = new HandlerThread("Phone");
+		thread_messages = new HandlerThread("Messaging");
+		thread_esm = new HandlerThread("ESM");
+		thread_calendar = new HandlerThread("Calendar");
+		thread_screen = new HandlerThread("Screen");
+		thread_cal_alarm = new HandlerThread("Calendar_Alarm");
+		thread_install = new HandlerThread("Installations");
+	}
+	
 	public void startAwareSensors(){
 		Intent aware = new Intent(this, Aware.class);
 	    startService(aware);
@@ -284,8 +290,8 @@ public class Plugin extends Aware_Plugin {
 	
 	public void startAwarePlugins(){
 		//Activate plugins
-//  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
-//  	    startService(mot);
+  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
+  	    startService(mot);
 //  		Intent rel_noise = new Intent(this, com.aware.plugin.ambient_noise.Plugin.class);
 //  	    startService(rel_noise);
 		//Initialize Screen/Multitasking/MoT/Noise vars
@@ -299,7 +305,12 @@ public class Plugin extends Aware_Plugin {
 	 * Calendar events alarm and MoT alarm
 	 */
 	public void startAlarms(){
-		thread_cal_alarm.start();
+		if(!Settings.isInitialized()){
+			thread_cal_alarm.start();
+		}else{
+			thread_cal_alarm = new HandlerThread("Calendar_Alarm");
+			thread_cal_alarm.start();
+		}
 		thread_calendar_alarms = new ArrayList<Handler>();
 		event_alarms = new ArrayList<Runnable>();
 		Plugin.lastCalendarESM = screenOnTime;
@@ -410,6 +421,7 @@ public class Plugin extends Aware_Plugin {
 		getContentResolver().unregisterContentObserver(messages_observer);
 		getContentResolver().unregisterContentObserver(esm_observer);
 		getContentResolver().unregisterContentObserver(calendar_observer);
+		getContentResolver().unregisterContentObserver(install_observer);
 //		getContentResolver().unregisterContentObserver(ambient_noise_observer);
 		
 		//stop listening to changes in the database(s)
@@ -430,14 +442,25 @@ public class Plugin extends Aware_Plugin {
 			thread_calendar_alarms.clear();
 		}
 		
-		thread_multitasking.quitSafely();
-		thread_mot.quitSafely();
-		thread_messages.quitSafely();
-		thread_phone.quitSafely();
-		thread_esm.quitSafely();
-		thread_calendar.quitSafely();
-		thread_screen.quitSafely();
-		thread_install.quitSafely();
+		//Kill threads
+		thread_multitasking.interrupt();
+		thread_mot.interrupt();
+		thread_messages.interrupt();
+		thread_phone.interrupt();
+		thread_esm.interrupt();
+		thread_calendar.interrupt();
+		thread_screen.interrupt();
+		thread_install.interrupt();
+		thread_cal_alarm.interrupt();
+		thread_multitasking = null;
+		thread_mot = null;
+		thread_messages = null;
+		thread_phone = null;
+		thread_esm = null;
+		thread_calendar = null;
+		thread_screen = null;
+		thread_install = null;
+		thread_cal_alarm = null;
 		
 		//Deactivate the sensors
 		Aware.setSetting(getApplicationContext(), STATUS_PLUGIN_MOBILE_SENSOR, false);
@@ -869,7 +892,8 @@ public class Plugin extends Aware_Plugin {
 	 */
 	private void createOutput(String summary){
 		try {
-			FileWriter writer = new FileWriter(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+outputFile,true);
+//			FileWriter writer = new FileWriter(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+outputFile,true);
+			FileWriter writer = new FileWriter(Environment.getExternalStorageDirectory() + "/AWARE" + Plugin.outputFile,true);
 			writer.append(summary+"\n");
     		writer.flush();
     		writer.close();
@@ -877,25 +901,5 @@ public class Plugin extends Aware_Plugin {
 			e.printStackTrace();
 		}
 	}
-	
-//	private boolean isMyServiceRunning(Class<?> serviceClass,Context context) {
-//	private void isMyServiceRunning(Class<?> serviceClass,Context context) {
-//    ActivityManager manager = (ActivityManager)context. getSystemService(Context.ACTIVITY_SERVICE);
-//    int i = 0;
-//    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-////    	if(service.service.getClassName().contains("aware")){
-////    		Log.d("Service",service.service.getClassName());
-////    		i++;
-////    	}
-//        if (serviceClass.getName().equals(service.service.getClassName())) {
-////            Log.i("Service already","running");
-//            Log.d("Service",serviceClass.getName()+" is running "+i);
-////            return true;
-//        }
-//    }	
-//    Log.d("Service",serviceClass.getName()+" isn't running "+i);
-////    Log.i("Service not","running");
-////    return false;
-//}
 	
 }
