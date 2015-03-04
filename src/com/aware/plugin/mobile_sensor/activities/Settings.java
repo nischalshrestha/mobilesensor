@@ -62,7 +62,7 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 
 	
 	static Settings activity = null;
-	private final static long HOUR = 3600000;
+//	private final static long HOUR = 3600000;
 	private boolean registered = false;
 	private static boolean initialized = false;
 	private long downloadID;
@@ -289,7 +289,7 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 			waitingDialog = ProgressDialog.show(Settings.this, "Downloading AWARE client",
 	    		    "Please wait a few seconds...", true);
 			new Download_Client().execute();
-		} else if(activity == null){
+	} else if(activity == null){
         	initialize();
         }
     }
