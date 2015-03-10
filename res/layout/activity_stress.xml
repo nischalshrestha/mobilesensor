@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.aware.plugin.mobile_sensor.activities.StressActivity">
+    tools:context="com.aware.plugin.sos_mobile_sensor.activities.StressActivity">
 
     <TextView
         android:layout_width="wrap_content"
