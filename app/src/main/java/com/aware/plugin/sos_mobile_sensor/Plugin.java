@@ -188,11 +188,18 @@ public class Plugin extends Aware_Plugin {
 	/**
 	 * Code here when add-on is turned on.
 	 */
-	@SuppressLint("NewApi")
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		TAG = "AWARE::Mobile Sensor";
+        TAG = "AWARE::Mobile Sensor";
+
+        //Our provider tables
+        DATABASE_TABLES = MobileSensor_Provider.DATABASE_TABLES;
+        //Our table fields
+        TABLES_FIELDS = MobileSensor_Provider.TABLES_FIELDS;
+        //Our provider URI
+        CONTEXT_URIS = new Uri[]{ MobileSensor_Data.CONTENT_URI };
+
 		startAwareSensors();
 		initializeThreads();
 		startAwarePlugins();
@@ -213,7 +220,7 @@ public class Plugin extends Aware_Plugin {
 					long timestamp = System.currentTimeMillis();
 					String timestampString = sdf2.format(new Date(System.currentTimeMillis()));
 					deviceID = Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID);
-					String context = ""+date+","+timestampString+","+participantID+","+multitasking+","+movement+","+noise_level+","+voice_messaging
+					String context = date+","+timestampString+","+participantID+","+multitasking+","+movement+","+noise_level+","+voice_messaging
 							+","+text_messaging+","+email+","+calendar_event+","+installations+","+rating+","+loudnessRating;
 					createOutput(context);
 					ContentValues context_data = new ContentValues();
@@ -247,13 +254,6 @@ public class Plugin extends Aware_Plugin {
 				}
 			}
 		};
-		
-		//Our provider tables
-		DATABASE_TABLES = MobileSensor_Provider.DATABASE_TABLES;
-		//Our table fields
-		TABLES_FIELDS = MobileSensor_Provider.TABLES_FIELDS;
-		//Our provider URI
-		CONTEXT_URIS = new Uri[]{ MobileSensor_Data.CONTENT_URI };
 	}
 	
 	private void initializeThreads(){
@@ -286,8 +286,9 @@ public class Plugin extends Aware_Plugin {
 	
 	public void startAwarePlugins(){
 		//Activate plugins
-  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
-  	    startService(mot);
+        //Denzil: this plugin no longer is supported. Use Google Activity Recognition plugin instead
+//  		Intent mot = new Intent(this, com.aware.plugin.modeoftransportation.Plugin.class);
+//  	    startService(mot);
 //  		Intent rel_noise = new Intent(this, com.aware.plugin.ambient_noise.Plugin.class);
 //  	    startService(rel_noise);
 		//Initialize Screen/Multitasking/MoT/Noise vars

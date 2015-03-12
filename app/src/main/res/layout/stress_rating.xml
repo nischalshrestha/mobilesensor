@@ -22,11 +22,9 @@
         android:layout_marginTop="20dp"
         android:layout_marginLeft="2dp"
         android:layout_marginRight="2dp"
-        app:multiline="false"
-        app:textSize="12sp"
-        app:color="#ff33b5e5"
-        >
-      	</com.infteh.comboseekbar.ComboSeekBar>
+        android:textSize="12sp"
+        android:color="#ff33b5e5"
+        />
       	
      <LinearLayout
 	    android:layout_height="wrap_content"

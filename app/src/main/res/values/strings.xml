@@ -2,7 +2,7 @@
 
     <string name="app_name">Mobile Sensor</string>
     <string name="hello_world">Login!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Mobile Sensor Settings</string>
     <string name="title_activity_noise_calibration">Noise Calibration</string>
     <string name="title_activity_test">TestActivity</string>
     <string name="title_activity_stress">StressActivity</string>

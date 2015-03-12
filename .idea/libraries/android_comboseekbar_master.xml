@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="android-comboseekbar-master">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/libs/android-comboseekbar-master.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

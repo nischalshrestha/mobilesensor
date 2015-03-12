@@ -11,6 +11,7 @@ import android.content.Intent;
 //import android.util.Log;
 
 
+import com.aware.Applications;
 import com.aware.Aware;
 import com.aware.Aware_Preferences;
 import com.aware.Screen;
@@ -96,7 +97,7 @@ public class ScreenObserver extends BroadcastReceiver {
 			Intent refresh = new Intent(Aware.ACTION_AWARE_REFRESH);
 			plugin.sendBroadcast(refresh);
 			
-			Intent applicationsSrv = new Intent(plugin.getApplicationContext(), com.aware.ApplicationsJB.class);
+			Intent applicationsSrv = new Intent(plugin.getApplicationContext(), Applications.class);
 	  	    plugin.stopService(applicationsSrv);
 			
 			 //Checking if services are running

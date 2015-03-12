@@ -25,5 +25,9 @@ dependencies {
     compile 'com.android.support:gridlayout-v7:21.0.3'
     compile 'com.google.android.gms:play-services:6.5.87'
     compile 'com.android.support:cardview-v7:21.0.3'
-    compile 'com.awareframework:aware-core:+@aar'
+    compile 'com.awareframework:aware-core:3.2.8@aar'
+    compile files('libs/android-comboseekbar-master.jar')
+    compile files('libs/commons-math3-3.3.jar')
+    compile files('libs/modeoftransportation.jar')
+    compile files('libs/noiselevel.jar')
 }
