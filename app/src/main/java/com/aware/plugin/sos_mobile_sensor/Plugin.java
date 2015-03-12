@@ -714,14 +714,6 @@ public class Plugin extends Aware_Plugin {
 		}
 	};
 	
-	/**
-	 * 
-	 * @param calendar_event
-	 */
-	public void setCalendarEvent(int calendar_event){
-		Plugin.calendar_event = calendar_event;
-	}
-	
 	@SuppressLint("NewApi")
 	private Runnable setUpEvents = new Runnable(){
 		@Override
