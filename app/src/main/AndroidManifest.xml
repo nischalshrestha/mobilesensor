@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.aware.plugin.sos_mobile_sensor">
+
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:readPermission="com.aware.READ_CONTEXT_DATA"
+        android:theme="@style/AppTheme"
+        android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+
+        <activity
+            android:name="com.aware.plugin.sos_mobile_sensor.activities.Settings"
+            android:label="@string/action_settings">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="com.aware.plugin.sos_mobile_sensor.MobileSensor_Provider"
+            android:authorities="com.aware.plugin.sos_mobile_sensor.provider.sos_mobile_sensor"
+            android:enabled="true"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- Aware -->
+        <service android:name="com.aware.Aware" >
+        </service>
+
+        <provider
+            android:name="com.aware.providers.Aware_Provider"
+            android:authorities="com.aware.plugin.sos_mobile_sensor.provider.aware"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- Noise Level -->
+        <service
+            android:name="com.aware.plugin.noise_level.Plugin"
+            android:exported="true" >
+        </service>
+
+        <provider
+            android:name="com.aware.plugin.noise_level.NoiseLevel_Provider"
+            android:authorities="com.aware.provider.plugin.noise_level"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- MoT -->
+        <service
+            android:name="com.aware.plugin.modeoftransportation.Plugin"
+            android:exported="true" >
+        </service>
+
+        <provider
+            android:name="com.aware.plugin.modeoftransportation.MoT_Provider"
+            android:authorities="com.aware.provider.plugin.mode_of_transportation"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- Communication -->
+        <service
+            android:name="com.aware.Communication"
+            android:exported="true" >
+        </service>
+
+        <provider
+            android:name="com.aware.providers.Communication_Provider"
+            android:authorities="com.aware.plugin.sos_mobile_sensor.provider.communication"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- Screen -->
+        <service android:name="com.aware.Screen" >
+        </service>
+
+        <provider
+            android:name="com.aware.providers.Screen_Provider"
+            android:authorities="com.aware.plugin.sos_mobile_sensor.provider.screen"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- Installations -->
+        <service
+            android:name="com.aware.Installations"
+            android:exported="true" >
+        </service>
+
+        <provider
+            android:name="com.aware.providers.Installations_Provider"
+            android:authorities="com.aware.plugin.sos_mobile_sensor.provider.installations"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- Applications -->
+
+        <!--
+        <service
+            android:name="com.aware.ApplicationsJB"
+            android:enabled="@bool/is_jelly_bean"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/aware_accessibility_config" />
+        </service>
+        -->
+
+        <service
+            android:name="com.aware.Applications$BackgroundService"
+            android:exported="true" >
+        </service>
+
+        <provider
+            android:name="com.aware.providers.Applications_Provider"
+            android:authorities="com.aware.plugin.sos_mobile_sensor.provider.applications"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- ESM -->
+        <service android:name="com.aware.ESM" >
+        </service>
+
+        <activity
+            android:name="com.aware.ui.ESM_Queue"
+            android:clearTaskOnLaunch="true"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:showOnLockScreen="true"
+            android:theme="@android:style/Theme.NoDisplay" >
+        </activity>
+
+        <service
+            android:name="com.aware.ESM$BackgroundService"
+            android:exported="true" >
+        </service>
+
+        <provider
+            android:name="com.aware.providers.ESM_Provider"
+            android:authorities="com.aware.plugin.sos_mobile_sensor.provider.esm"
+            android:exported="true"
+            android:readPermission="com.aware.READ_CONTEXT_DATA"
+            android:writePermission="com.aware.WRITE_CONTEXT_DATA" >
+        </provider>
+
+        <!-- Noise Calibration -->
+        <activity
+            android:name="com.aware.plugin.sos_mobile_sensor.activities.NoiseCalibrationActivity"
+            android:label="@string/title_activity_noise_calibration"
+            android:parentActivityName="com.aware.plugin.sos_mobile_sensor.activities.Settings" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.aware.plugin.sos_mobile_sensor.activities.Settings" />
+        </activity>
+
+        <activity
+            android:name="com.aware.plugin.sos_mobile_sensor.activities.StressActivity"
+            android:label="@string/title_activity_stress"
+            android:theme="@style/Theme.Transparent" >
+        </activity>
+
+        <!--
+        <activity
+            android:name="com.aware.plugin.sos_mobile_sensor.activities.TimeElapsedActivity"
+            android:label="@string/title_activity_time_elapsed"
+            android:parentActivityName="com.aware.plugin.sos_mobile_sensor.activities.SettingsSettings" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.aware.plugin.sos_mobile_sensor.Settings" />
+        </activity>
+        -->
+
+    </application>
+
+
+
+</manifest>

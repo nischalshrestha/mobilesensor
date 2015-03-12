@@ -1,0 +1,19 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    tools:context="com.aware.plugin.sos_mobile_sensor.activities.Settings" >
+
+
+    <PreferenceCategory
+        android:title="Noise Sensor"
+        tools:ignore="HardcodedText" >
+        <EditTextPreference
+            android:title="Device Calibration"
+            android:summary="Password required"
+            android:key="prefNoiseCalibration"/>
+    </PreferenceCategory>
+
+
+</PreferenceScreen>
+
