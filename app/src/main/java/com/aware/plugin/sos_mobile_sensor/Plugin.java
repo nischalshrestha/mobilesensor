@@ -226,6 +226,15 @@ public class Plugin extends Aware_Plugin {
 		
 	}
 	
+	@Override
+    	public int onStartCommand(Intent intent, int flags, int startId) {
+	        //This function gets called every 5 minutes by AWARE to make sure this plugin is still running.
+	        
+	        DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
+	
+	        return super.onStartCommand(intent, flags, startId);
+    	}
+	
 	private void initializeThreads(){
 		thread_multitasking = new HandlerThread("Multitasking");
 		thread_activity = new HandlerThread("MoT");
