@@ -64,13 +64,12 @@ public class MessageObserver extends ContentObserver {
 				mSelectionArgs[0] = "1";
 				Cursor textData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, mSelection, mSelectionArgs, null);
 //				Log.d("Text", "Count: " + textData.getCount());
-				if(currentTime-lastMessageESM >= Plugin.throttle    //&&
-	//			   currentTime > morning.getTimeInMillis()          &&
-				   //currentTime < evening.getTimeInMillis()
-                        ||
-				   textData.getCount() < 1                          //&&
-//				   Calendar.DAY_OF_WEEK > 1                  	    &&
-//				   Calendar.DAY_OF_WEEK < 7 //don't bother on weekends
+				if(currentTime-lastMessageESM >= Plugin.throttle    &&
+				   currentTime > morning.getTimeInMillis()          &&
+				   currentTime < evening.getTimeInMillis()          ||
+				   textData.getCount() < 1                          &&
+				   Calendar.DAY_OF_WEEK > 1                  	    &&
+				   Calendar.DAY_OF_WEEK < 7 //don't bother on weekends
 				   ) {
 					if(!Plugin.stressInit){
 				        Plugin.stressInit = true;

@@ -56,12 +56,12 @@ public class AmbientNoiseObserver extends ContentObserver {
 				Cursor noiseData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, mSelection, mSelectionArgs, null);
 				//Fire sensor and/or prompt ESM 
 				if(currentTime - lastAmbientESM >= Plugin.throttle &&
-//				   currentTime > newCal.getTimeInMillis()          &&
-//				   currentTime < newCal2.getTimeInMillis()         &&
+				   currentTime > newCal.getTimeInMillis()          &&
+				   currentTime < newCal2.getTimeInMillis()         &&
 				   state.equals("noisy")                           || 
-				   noiseData.getCount() < 1                        //&&
-//				   Calendar.DAY_OF_WEEK > 1                        &&
-//				   Calendar.DAY_OF_WEEK < 7 //don't bother on weekends
+				   noiseData.getCount() < 1                        &&
+				   Calendar.DAY_OF_WEEK > 1                        &&
+				   Calendar.DAY_OF_WEEK < 7 //don't bother on weekends
 				   ) {
 					if(!Plugin.stressInit){
 	                    Plugin.stressInit = true;

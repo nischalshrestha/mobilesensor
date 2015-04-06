@@ -81,7 +81,6 @@ public class Plugin extends Aware_Plugin {
 	public static Handler thread_sensor_ambient_noise = null;
 	
 	public static Handler thread_esm_alarm = null;
-	public static Handler thread_calendar_alarm = null;
 	public static Handler thread_retroq_alarm = null;
 	private ArrayList<Handler> thread_calendar_alarms;
 	@SuppressWarnings("unused")
@@ -225,15 +224,6 @@ public class Plugin extends Aware_Plugin {
 		};
 		
 	}
-	
-	@Override
-    	public int onStartCommand(Intent intent, int flags, int startId) {
-	        //This function gets called every 5 minutes by AWARE to make sure this plugin is still running.
-	        
-	        DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
-	
-	        return super.onStartCommand(intent, flags, startId);
-    	}
 	
 	private void initializeThreads(){
 		thread_multitasking = new HandlerThread("Multitasking");
@@ -807,27 +797,13 @@ public class Plugin extends Aware_Plugin {
 			cal = new GregorianCalendar();
 			Calendar newCal = new GregorianCalendar();
 			long next = 0;
-//			if(Calendar.DAY_OF_WEEK > 1 && Calendar.DAY_OF_WEEK < 7){ //don't bother on weekends
+			if(Calendar.DAY_OF_WEEK > 1 && Calendar.DAY_OF_WEEK < 7){ //don't bother on weekends
 	            int hourOfDay = Calendar.HOUR_OF_DAY;
 	            if((hourOfDay >= 0 || hourOfDay == 24) && hourOfDay < 8){ //0am
 	                newCal.set(Calendar.HOUR_OF_DAY, 20);
 	                newCal.set(Calendar.MINUTE, 0);
 	                newCal.set(Calendar.SECOND, 0);
 	                next = newCal.getTimeInMillis() - System.currentTimeMillis();
-                    Intent esm = new Intent();
-                    esm.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
-                    String esmStr = "[" +
-                            "{'esm': {" +
-                            "'esm_type': 1, " +
-                            "'esm_title': 'Retroactive Question', " +
-                            "'esm_instructions': 'You rated above a 3.0 on the stress rating likert scale "+stressEvents+" times today! "
-                            + "Please describe what affected your ratings today.', " +
-                            "'esm_submit':'Done', " +
-                            "'esm_expiration_threashold': 240, " +
-                            "'esm_trigger': 'Retroactive Question' }}]";
-                    esm.putExtra(ESM.EXTRA_ESM,esmStr);
-                    if(Plugin.screenIsOn && Plugin.participantID != null)
-                        sendBroadcast(esm);
 	//                Log.d("Retro","Inside 1st: "+next);
 	            } else if(hourOfDay >= 8 && hourOfDay < 20){ //8am to before 8pm normal questions
 	                newCal.set(Calendar.HOUR_OF_DAY, 20);
@@ -865,7 +841,7 @@ public class Plugin extends Aware_Plugin {
 	                }
 	                //Make an array for all events and iterate through them to ask.
 	                //Share context
-//	                if(esmDB.getCount() > 0 && stressEvents > 0){
+	                if(esmDB.getCount() > 0 && stressEvents > 0){
 		                Intent esm = new Intent();
 		                esm.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
 		                String esmStr = "[" +
@@ -880,7 +856,7 @@ public class Plugin extends Aware_Plugin {
 		                esm.putExtra(ESM.EXTRA_ESM,esmStr);
 		                if(Plugin.screenIsOn && Plugin.participantID != null)
 		                    sendBroadcast(esm);
-//	                }
+	                }
 	                if(esmDB != null && !esmDB.isClosed()){ esmDB.close(); }
 	            } else if(hourOfDay > 20 && hourOfDay < 24){
 	            	newCal.add(Calendar.DAY_OF_WEEK, 1); //recalculates calendar if at the end
@@ -889,17 +865,17 @@ public class Plugin extends Aware_Plugin {
 	                newCal.set(Calendar.SECOND, 0);
 	                next = newCal.getTimeInMillis() - System.currentTimeMillis();
 	            }
-//			} else{
-//				if(Calendar.DAY_OF_WEEK == 1){
-//					newCal.add(Calendar.DAY_OF_WEEK, 1); //have it delayed until the next day
-//				} else{
-//					newCal.add(Calendar.DAY_OF_WEEK, 2); //have it delayed until next 2 days
-//				}
-//				newCal.set(Calendar.HOUR_OF_DAY, 20);
-//                newCal.set(Calendar.MINUTE, 0);
-//                newCal.set(Calendar.SECOND, 0);
-//                next = newCal.getTimeInMillis() - System.currentTimeMillis();
-//			}
+			} else{
+				if(Calendar.DAY_OF_WEEK == 1){
+					newCal.add(Calendar.DAY_OF_WEEK, 1); //have it delayed until the next day
+				} else{
+					newCal.add(Calendar.DAY_OF_WEEK, 2); //have it delayed until next 2 days
+				}
+				newCal.set(Calendar.HOUR_OF_DAY, 20);
+                newCal.set(Calendar.MINUTE, 0);
+                newCal.set(Calendar.SECOND, 0);
+                next = newCal.getTimeInMillis() - System.currentTimeMillis();
+			}
 //			Log.d("Retro","Next one in ms: "+next);
 			thread_retroq_alarm.postDelayed(this, next);
 		}

@@ -146,9 +146,9 @@ public class MultitaskingObserver extends ContentObserver {
 			//Case 1: more stressors (provide list for verification
 			if(!lock															&&
 				Plugin.stressInit											    && 
-			   (System.currentTimeMillis() - Plugin.initStressorTime >= 60000)  //&&
-//			    Calendar.DAY_OF_WEEK > 1 										&&
-//                Calendar.DAY_OF_WEEK < 7
+			   (System.currentTimeMillis() - Plugin.initStressorTime >= 60000)  &&
+			    Calendar.DAY_OF_WEEK > 1 										&&
+                Calendar.DAY_OF_WEEK < 7
 			   ) {
 				Log.d("Stress", "Going to run stress rating prompt in 1 minute...");
 				lock = true;
@@ -205,13 +205,12 @@ public class MultitaskingObserver extends ContentObserver {
 								tSelectionArgs[0] = "1";
 								Cursor textData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, tSelection, tSelectionArgs, null);
 								//send an esm intent
-								if(currentTime-MessageObserver.lastMessageESM >= Plugin.throttle    //&&
-//								   currentTime > morning.getTimeInMillis()							&&
-//								   currentTime < evening.getTimeInMillis()
-                                        ||
-								   textData.getCount() < 1											//&&
-//					               Calendar.DAY_OF_WEEK > 1 										&&
-//					               Calendar.DAY_OF_WEEK < 7
+								if(currentTime-MessageObserver.lastMessageESM >= Plugin.throttle    &&
+								   currentTime > morning.getTimeInMillis()							&&
+								   currentTime < evening.getTimeInMillis()                          ||
+								   textData.getCount() < 1											&&
+					               Calendar.DAY_OF_WEEK > 1 										&&
+					               Calendar.DAY_OF_WEEK < 7
 								   ){
 									if(!Plugin.stressInit){
 						                Plugin.stressInit = true;
@@ -261,13 +260,12 @@ public class MultitaskingObserver extends ContentObserver {
 								eSelectionArgs[0] = "1";
 								Cursor emailData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, eSelection, eSelectionArgs, null);
 								//send an esm intent
-								if(currentTime-lastEmailESM >= Plugin.throttle	///&&
-//								   currentTime > morning.getTimeInMillis()		&&
-//								   currentTime < evening.getTimeInMillis()
-                                        ||
-								   emailData.getCount() < 1						//&&
-//					               Calendar.DAY_OF_WEEK > 1 					&&
-//					               Calendar.DAY_OF_WEEK < 7
+								if(currentTime-lastEmailESM >= Plugin.throttle  &&
+								   currentTime > morning.getTimeInMillis()		&&
+								   currentTime < evening.getTimeInMillis()      ||
+								   emailData.getCount() < 1						&&
+					               Calendar.DAY_OF_WEEK > 1 					&&
+					               Calendar.DAY_OF_WEEK < 7
 								   ){
 									if(!Plugin.stressInit){
 						                Plugin.stressInit = true;
@@ -339,13 +337,12 @@ public class MultitaskingObserver extends ContentObserver {
 				//Fire up the false positive ESM when conditions are met 
 				if((currentTime-lastMultitasking) >= timeWindow && switches >= MAX_SWITCHES){
 					lastMultitasking = System.currentTimeMillis();
-					if(currentTime-lastMultiESM >= Plugin.throttle		//&&
-//					   currentTime > morning.getTimeInMillis()			&&
-//					   currentTime < evening.getTimeInMillis()
-                            ||
-					   multiData.getCount() < 1							//&&
-//		               Calendar.DAY_OF_WEEK > 1 						&&
-//		               Calendar.DAY_OF_WEEK < 7
+					if(currentTime-lastMultiESM >= Plugin.throttle		&&
+					   currentTime > morning.getTimeInMillis()			&&
+					   currentTime < evening.getTimeInMillis()          ||
+					   multiData.getCount() < 1							&&
+		               Calendar.DAY_OF_WEEK > 1 						&&
+		               Calendar.DAY_OF_WEEK < 7
 					   ){
 						if(!Plugin.stressInit){
 			                Plugin.stressInit = true;

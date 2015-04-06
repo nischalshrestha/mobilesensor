@@ -248,7 +248,7 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    	activity = this;
         	AlertDialog accessibility;
     	    AlertDialog.Builder builder = new AlertDialog.Builder(Settings.this);
-    	    builder.setMessage("Please activate AWARE and Mobile Sensor on the Accessibility Services!");
+    	    builder.setMessage("Please activate AWARE on the Accessibility Services!");
             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
