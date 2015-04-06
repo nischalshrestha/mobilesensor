@@ -1,25 +1,21 @@
 package com.aware.plugin.sos_mobile_sensor.observers;
 
-//import android.app.ActivityManager;
-//import android.app.ActivityManager.RunningServiceInfo;
+import java.util.Calendar;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 //import android.os.Handler;
 //import android.os.HandlerThread;
 //import android.os.Looper;
 //import android.util.Log;
+//import android.util.Log;
 
-
-import com.aware.Applications;
 import com.aware.Aware;
 import com.aware.Aware_Preferences;
+import com.aware.ESM;
 import com.aware.Screen;
-//import com.aware.plugin.ambient_noise.Provider.AmbientNoise_Data;
-//import com.aware.plugin.modeoftransportation.MoT_Provider.MoT;
-//import com.aware.plugin.noise_level.NoiseLevel_Provider.NoiseLevel;
-import com.aware.plugin.noise_level.NoiseLevel_Provider.NoiseLevel;
-//import com.aware.providers.Applications_Provider.Applications_Foreground;
 import com.aware.plugin.sos_mobile_sensor.Plugin;
 
 /**
@@ -32,6 +28,9 @@ public class ScreenObserver extends BroadcastReceiver {
 	
 	//Plugin for context
 	private Plugin plugin;
+	public static boolean noStress = false;
+	public static boolean alreadyAsked = false;
+	private static final int[] hours = {10,12,14,16,18};
 	
 	/**
 	 * Initiate ScreenObserver with the handler, and plugin for context
@@ -41,16 +40,14 @@ public class ScreenObserver extends BroadcastReceiver {
 		this.plugin = plugin;
 	}
 	
+	@SuppressWarnings("unused")
 	@Override
 	public void onReceive(Context context, Intent intent) {
-//		Log.d("Thread","Screen: Is this the main thread?"+(Looper.myLooper() == Looper.getMainLooper()));
-//		Log.d("Thread","Screen running?: "+Plugin.thread_screen.getName()+" -> "+Plugin.thread_screen.getState());
 		if(intent.getAction().equalsIgnoreCase(Screen.ACTION_AWARE_SCREEN_ON)) {
 //			if( Aware.DEBUG )
 //				Log.d("Screen","User has turned on the screen");
 			Plugin.screenOnTime = System.currentTimeMillis();
 			Plugin.screenIsOn = true;
-			
 			Aware.setSetting(plugin.getApplicationContext(), Aware_Preferences.STATUS_APPLICATIONS, true);
 			Aware.setSetting(plugin.getApplicationContext(), Aware_Preferences.STATUS_INSTALLATIONS, true);
 			Aware.setSetting(plugin.getApplicationContext(), Aware_Preferences.STATUS_CALLS, true);
@@ -59,36 +56,52 @@ public class ScreenObserver extends BroadcastReceiver {
 			Aware.setSetting(plugin, Aware_Preferences.DEBUG_FLAG, true);
 			Intent apply = new Intent(Aware.ACTION_AWARE_REFRESH);
 			plugin.sendBroadcast(apply);
-			
-//			Intent mot = new Intent(plugin.getApplicationContext(), com.aware.plugin.modeoftransportation.Plugin.class);
-//	  	    plugin.startService(mot);
-			
-			//Restart noise and mot plugins
-//			Log.d("Screen","Starting noise and mot sensors");
-			
-			//Initialize the context observers with the sensor thread for performance
-			if(Plugin.noise_observer != null){
-//				Log.d("Screen","Starting noise sensor observer thread");
-				Intent noise = new Intent(plugin, com.aware.plugin.noise_level.Plugin.class);
-			    plugin.startService(noise);
-				plugin.getContentResolver().registerContentObserver(NoiseLevel.CONTENT_URI, true, Plugin.noise_observer);
+			for(int i = 0; i < hours.length; i++){
+				if(Calendar.HOUR_OF_DAY == hours[i]){
+					if(Plugin.ambient_noise.equals("silent") 	&&
+					   Plugin.movement.equals("still")			&&
+					   Plugin.multitasking == 0					&&
+					   Plugin.text_messaging == 0				&&
+					   Plugin.calendar_event != ""				&&
+					   Plugin.email == 0						&&
+					   Plugin.voice_messaging == 0				&&
+					   Calendar.DAY_OF_WEEK > 1 				&& 
+					   Calendar.DAY_OF_WEEK < 7
+					   ){
+						noStress = true;
+						plugin.CONTEXT_PRODUCER.onContext();
+						final Handler handler = new Handler();
+		            	handler.postDelayed(new Runnable() {
+		            	    @Override
+		            	    public void run() {
+		            	    	Intent esm = new Intent();
+				                esm.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
+				                String esmStr = "[" +
+				                        "{'esm': {" +
+				                        "'esm_type': 1, " +
+				                        "'esm_title': 'Stress Rating', " +
+				                        "'esm_instructions': 'Rate your stress level from 0-5', " +
+				                        "'esm_submit':'Done', " +
+				                        "'esm_expiration_threashold': 240, " +
+				                        "'esm_trigger': 'No Stress Question' }}]";
+				                esm.putExtra(ESM.EXTRA_ESM,esmStr);
+				                if(Plugin.screenIsOn && Plugin.participantID != null)
+				                    plugin.sendBroadcast(esm);
+		            	    }
+		            	}, 5000);
+		                break;
+					} else{
+						plugin.CONTEXT_PRODUCER.onContext(); //record no stressors event anyways
+					}
+				}
 			}
-			
-//			Log.d("Service","---------------------------");
-//	        isMyServiceRunning(com.aware.ESM.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.Applications.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.ApplicationsJB.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.Screen.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.Communication.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.Installations.class, plugin.getApplicationContext());
-//	        Log.d("Service","---------------------------");
+            Aware.startPlugin(plugin.getApplicationContext(), "com.aware.plugin.google.activity_recognition");
+			Aware.startPlugin(plugin.getApplicationContext(), "com.aware.plugin.ambient_noise");
 		}
 		if(intent.getAction().equals(Screen.ACTION_AWARE_SCREEN_OFF)) {
 //			if( Aware.DEBUG )
 //				Log.d("Screen","User has turned off the screen");
 			Plugin.screenIsOn = false;
-//			Log.d("Screen","Stoping noise and mot sensors");
-			
 			Aware.setSetting(plugin.getApplicationContext(), Aware_Preferences.STATUS_APPLICATIONS, false);
 			Aware.setSetting(plugin.getApplicationContext(), Aware_Preferences.STATUS_INSTALLATIONS, false);
 			Aware.setSetting(plugin.getApplicationContext(), Aware_Preferences.STATUS_CALLS, false);
@@ -96,56 +109,9 @@ public class ScreenObserver extends BroadcastReceiver {
 			Aware.setSetting(plugin.getApplicationContext(), Aware_Preferences.STATUS_ESM, false);
 			Intent refresh = new Intent(Aware.ACTION_AWARE_REFRESH);
 			plugin.sendBroadcast(refresh);
-			
-			Intent applicationsSrv = new Intent(plugin.getApplicationContext(), Applications.class);
-	  	    plugin.stopService(applicationsSrv);
-			
-			 //Checking if services are running
-//			Log.d("Service","---------------------------");
-//	        isMyServiceRunning(com.aware.ESM.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.Applications.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.ApplicationsJB.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.Screen.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.Communication.class, plugin.getApplicationContext());
-//	        isMyServiceRunning(com.aware.Installations.class, plugin.getApplicationContext());
-//	        Log.d("Service","---------------------------");
-			
-			//Deactive the plugins
-//			Intent noise = new Intent(plugin, com.aware.plugin.noise_level.Plugin.class);
-//		    plugin.stopService(noise);
-//	  		Intent mot = new Intent(plugin.getApplicationContext(), com.aware.plugin.modeoftransportation.Plugin.class);
-//	  	    plugin.stopService(mot);
-	  	    
-			//turn off noise observer
-			if(NoiseObserver.s != null){
-//				Log.d("Screen","Shutting down noise sensor observer thread");
-				Plugin.thread_sensor_noise.removeCallbacksAndMessages(null);
-				plugin.getContentResolver().unregisterContentObserver(Plugin.noise_observer);
-//				Log.d("Thread","Screen: Is the noise thread alive?"+Plugin.thread_sensor_noise.getLooper().getThread().isAlive());
-			} 
-//			else{
-//				Log.d("Screen","Noise sensor not yet calibrating so cannot shut down!");
-//			}
+			Aware.stopPlugin(plugin.getApplicationContext(), "com.aware.plugin.google.activity_recognition");
+			Aware.stopPlugin(plugin.getApplicationContext(), "com.aware.plugin.ambient_noise");
 		}
 	}
 	
-//	private boolean isMyServiceRunning(Class<?> serviceClass,Context context) {
-//		private void isMyServiceRunning(Class<?> serviceClass,Context context) {
-//        ActivityManager manager = (ActivityManager)context. getSystemService(Context.ACTIVITY_SERVICE);
-//        int i = 0;
-//        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-//        	if(service.service.getClassName().contains("aware")){
-//        		Log.d("Service",service.service.getClassName());
-//        		i++;
-//        	}
-////            if (serviceClass.getName().equals(service.service.getClassName())) {
-//////                Log.i("Service already","running");
-////                Log.d("Service",serviceClass.getName()+" is running "+i);
-////                return true;
-////            }
-//        }	
-//        Log.d("Service",serviceClass.getName()+" isn't running "+i);
-////        Log.i("Service not","running");
-////        return false;
-//    }
 }

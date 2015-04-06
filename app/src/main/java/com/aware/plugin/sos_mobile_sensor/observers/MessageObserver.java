@@ -1,19 +1,18 @@
 package com.aware.plugin.sos_mobile_sensor.observers;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.os.Handler;
-import android.util.Log;
+//import android.util.Log;
 
-import com.aware.Aware;
 import com.aware.ESM;
-import com.aware.plugin.sos_mobile_sensor.Plugin;
 import com.aware.plugin.sos_mobile_sensor.MobileSensor_Provider.MobileSensor_Data;
+import com.aware.plugin.sos_mobile_sensor.Plugin;
 import com.aware.providers.Communication_Provider.Messages_Data;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 /**
  * A ContentObserver that will detect when the user is texting
@@ -23,6 +22,7 @@ public class MessageObserver extends ContentObserver {
 	
 	private Plugin plugin;
 	public static long lastMessageESM;
+	private static String action = "";
 	
 	/**
 	 * Initiate MessageObserver ContentObserver with the handler, and plugin for context
@@ -38,52 +38,75 @@ public class MessageObserver extends ContentObserver {
 	public void onChange(boolean selfChange) {
 		super.onChange(selfChange);
 		if(Plugin.screenIsOn){
-//			if( Aware.DEBUG )
-//				Log.d("Messaging","User is either sending or receiving messages");
 			Cursor messages = plugin.getContentResolver().query(Messages_Data.CONTENT_URI, null, null, null, Messages_Data.TIMESTAMP + " DESC LIMIT 1");
 			if( messages!= null && messages.moveToFirst()) {
+				long currentTime = System.currentTimeMillis();
+				Calendar morning = new GregorianCalendar();
+				morning.set(Calendar.HOUR_OF_DAY, Plugin.MORNING);
+				morning.set(Calendar.MINUTE, 0);
+				morning.set(Calendar.SECOND, 0);
+				Calendar evening = new GregorianCalendar();
+				evening.set(Calendar.HOUR_OF_DAY, Plugin.EVENING);
+				evening.set(Calendar.MINUTE, 0);
+				evening.set(Calendar.SECOND, 0);
 				//Share context
-				Plugin.text_messaging = 1;
-				plugin.CONTEXT_PRODUCER.onContext();
-				Plugin.text_messaging = 0;
+//				if( Aware.DEBUG )
+//					Log.d("Messaging","Status: "+messages.getString(messages.getColumnIndex("message_type")));
+				String prevSent = action;
 				String mtype = messages.getString(messages.getColumnIndex(Messages_Data.TYPE));
-				String action = "";
 				if(mtype.equals("1")){
 					action = "received";
 				} else if(mtype.equals("2")){
 					action = "sent";
 				}
-				long currentTime = System.currentTimeMillis();
-				Cursor textData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, null, null, null);
-				if(currentTime-lastMessageESM >= Plugin.throttle || textData.getCount() <= 1){
-					Calendar morning = new GregorianCalendar();
-					morning.set(Calendar.HOUR_OF_DAY, Plugin.MORNING);
-					morning.set(Calendar.MINUTE, 0);
-					morning.set(Calendar.SECOND, 0);
-					Calendar evening = new GregorianCalendar();
-					evening.set(Calendar.HOUR_OF_DAY, Plugin.EVENING);
-					evening.set(Calendar.MINUTE, 0);
-					evening.set(Calendar.SECOND, 0);
-					if(currentTime > morning.getTimeInMillis() && currentTime < evening.getTimeInMillis()){
-						lastMessageESM = System.currentTimeMillis();
-						Intent esm = new Intent();
-//						if( Aware.DEBUG )
-//							Log.d("Messaging","Prompting the Messaging ESM");
-					    esm.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
-						String esmStr = "[" +
-				                "{'esm': {" +
-				                "'esm_type': 5, " +
-				                "'esm_title': 'You have just "+action+" a text message', " +
-				                "'esm_instructions': 'Is this true?', " +
-				                "'esm_quick_answers':  ['Yes','No'], " +
-				                "'esm_expiration_threashold': 60, " +
-				                "'esm_trigger': 'Messages' }}]";
-						esm.putExtra(ESM.EXTRA_ESM,esmStr);
-						if(Plugin.screenIsOn)
-							plugin.sendBroadcast(esm);
-					}
-				} if(textData != null && ! textData.isClosed() ) textData.close();
-			} if(messages != null && ! messages.isClosed() ) messages.close();
+				String mSelection = "text_messaging == ?";
+				String[] mSelectionArgs = new String[1];
+				mSelectionArgs[0] = "1";
+				Cursor textData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, mSelection, mSelectionArgs, null);
+//				Log.d("Text", "Count: " + textData.getCount());
+				if(currentTime-lastMessageESM >= Plugin.throttle    //&&
+	//			   currentTime > morning.getTimeInMillis()          &&
+				   //currentTime < evening.getTimeInMillis()
+                        ||
+				   textData.getCount() < 1                          //&&
+//				   Calendar.DAY_OF_WEEK > 1                  	    &&
+//				   Calendar.DAY_OF_WEEK < 7 //don't bother on weekends
+				   ) {
+					if(!Plugin.stressInit){
+				        Plugin.stressInit = true;
+				        Plugin.initStressorTime = currentTime;
+				        Plugin.initStressor = "Text Messaging";
+				        Plugin.stressCount++;
+//				        if( Aware.DEBUG )
+//	                        Log.d("Messaging","Prompting the Messaging ESM");
+				        String esmStr = "[" +
+	                            "{'esm': {" +
+	                            "'esm_type': 5, " +
+	                            "'esm_title': 'You were just text messaging', " +
+	                            "'esm_instructions': 'Is this true?', " +
+	                            "'esm_quick_answers':  ['Yes','No'], " +
+	                            "'esm_expiration_threashold': 180, " +
+	                            "'esm_trigger': 'Text Messaging' }}]";
+	                    Intent esm = new Intent().setAction("ESM.ACTION_AWARE_QUEUE_ESM").putExtra(ESM.EXTRA_ESM,esmStr);
+	                    if(Plugin.screenIsOn && Plugin.stressInit)
+	                        plugin.sendBroadcast(esm);
+	                }
+	                if(Plugin.stressInit 
+	                		&& currentTime-Plugin.initStressorTime < 60000 
+	                		&& !Plugin.initStressor.equals("Text Messaging")){
+	                    Plugin.stressCount++;
+	                }
+                    Plugin.text_messaging = 1;
+                    plugin.CONTEXT_PRODUCER.onContext();
+                    Plugin.text_messaging = 0;
+                    lastMessageESM = System.currentTimeMillis();
+                } else if(prevSent != null && !prevSent.equals(action)){
+                    Plugin.text_messaging = 1;
+                    plugin.CONTEXT_PRODUCER.onContext();
+                    Plugin.text_messaging = 0;
+                }
+                if(textData != null && !textData.isClosed() ) textData.close();
+			} if(messages != null && !messages.isClosed() ) messages.close();
 		}
 	}
 }

@@ -11,6 +11,7 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -28,6 +29,6 @@ dependencies {
     compile 'com.awareframework:aware-core:3.2.8@aar'
     compile files('libs/android-comboseekbar-master.jar')
     compile files('libs/commons-math3-3.3.jar')
-    compile files('libs/modeoftransportation.jar')
-    compile files('libs/noiselevel.jar')
+    compile files('libs/ambient_noise.jar')
+    compile files('libs/google_activityrecognition.jar')
 }

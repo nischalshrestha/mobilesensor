@@ -4,16 +4,10 @@
     android:layout_height="wrap_content"
     tools:context="com.aware.plugin.sos_mobile_sensor.activities.Settings" >
 
-
-    <PreferenceCategory
-        android:title="Noise Sensor"
-        tools:ignore="HardcodedText" >
-        <EditTextPreference
-            android:title="Device Calibration"
-            android:summary="Password required"
-            android:key="prefNoiseCalibration"/>
-    </PreferenceCategory>
-
-
+    <CheckBoxPreference
+        android:key="status_plugin_sos_mobile_sensor"
+        android:defaultValue="true"
+        android:persistent="true"
+        android:summary="Activate/Deactivate Plugin" />
+    
 </PreferenceScreen>
-

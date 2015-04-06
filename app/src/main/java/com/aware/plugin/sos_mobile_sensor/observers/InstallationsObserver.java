@@ -1,17 +1,9 @@
 package com.aware.plugin.sos_mobile_sensor.observers;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
-import com.aware.ESM;
-import com.aware.plugin.sos_mobile_sensor.Plugin;
-import com.aware.plugin.sos_mobile_sensor.MobileSensor_Provider.MobileSensor_Data;
-import com.aware.providers.Communication_Provider.Messages_Data;
-
-import android.content.Intent;
 import android.database.ContentObserver;
-import android.database.Cursor;
 import android.os.Handler;
+
+import com.aware.plugin.sos_mobile_sensor.Plugin;
 
 public class InstallationsObserver extends ContentObserver{
 
@@ -33,12 +25,10 @@ public class InstallationsObserver extends ContentObserver{
 		if(Plugin.screenIsOn){
 //			if( Aware.DEBUG )
 //				Log.d("Installations","User is either installing or uninstalling an app!");
-			Plugin.installations = 1;
-			plugin.CONTEXT_PRODUCER.onContext();
-			Plugin.installations = 0;
+            Plugin.installations = 1;
+            plugin.CONTEXT_PRODUCER.onContext();
+            Plugin.installations = 0;
 		}
 	}
-	
-	
 
 }

@@ -1,7 +1,5 @@
 package com.aware.plugin.sos_mobile_sensor;
 
-import java.util.HashMap;
-
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -18,6 +16,8 @@ import android.util.Log;
 import com.aware.Aware;
 import com.aware.utils.DatabaseHelper;
 
+import java.util.HashMap;
+
 public class MobileSensor_Provider extends ContentProvider {
 	
 	/**
@@ -27,7 +27,7 @@ public class MobileSensor_Provider extends ContentProvider {
 	/**
 	* ContentProvider database version. Increment every time you modify the database structure
 	*/
-	public static final int DATABASE_VERSION = 2;
+	public static final int DATABASE_VERSION = 1;
 	//ContentProvider query indexes
 	private static final int MOBILE_SENSOR = 1;
 	private static final int MOBILE_SENSOR_ID = 2;
@@ -47,13 +47,16 @@ public class MobileSensor_Provider extends ContentProvider {
 		MobileSensor_Data._ID + " integer primary key autoincrement," +
 		MobileSensor_Data.TIMESTAMP + " real default 0," +
 		MobileSensor_Data.DEVICE_ID + " text default ''," +
+        MobileSensor_Data.DATE + " text default ''," +
+        MobileSensor_Data.TIME + " text default ''," +
+		MobileSensor_Data.PARTICIPANT_ID + " text default ''," +
 		MobileSensor_Data.MULTITASKING + " integer default 0," +
 		MobileSensor_Data.MOT + " text default ''," +
-		MobileSensor_Data.NOISE_LEVEL + " real default 0," +
-//		MobileSensor_Data.AMBIENT_NOISE + " double default 0," +
+		MobileSensor_Data.MOT_CONFIDENCE + " integer default 0," +
+		MobileSensor_Data.AMBIENT_NOISE + " text default ''," +
 		MobileSensor_Data.CALLS + " integer default 0," +
 		MobileSensor_Data.MESSAGING + "  integer default 0," +
-		MobileSensor_Data.CALENDAR + " integer default 0," +
+		MobileSensor_Data.CALENDAR + " text default ''," +
 		MobileSensor_Data.EMAIL + " integer default 0," +
 		MobileSensor_Data.INSTALLATIONS + " integer default 0," +
 		"UNIQUE (" + MobileSensor_Data.TIMESTAMP + "," + MobileSensor_Data.DEVICE_ID + ")"
@@ -71,7 +74,28 @@ public class MobileSensor_Provider extends ContentProvider {
 		}
 		return( database != null && databaseHelper != null);
 	}
-
+	static {
+		sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+		sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0], MOBILE_SENSOR); //URI for all records
+		sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0]+"/#", MOBILE_SENSOR_ID); //URI for a single record
+		tableMap = new HashMap<String, String>();
+		tableMap.put(MobileSensor_Data._ID, MobileSensor_Data._ID);
+		tableMap.put(MobileSensor_Data.TIMESTAMP, MobileSensor_Data.TIMESTAMP);
+		tableMap.put(MobileSensor_Data.DEVICE_ID, MobileSensor_Data.DEVICE_ID);
+        tableMap.put(MobileSensor_Data.DATE, MobileSensor_Data.DATE);
+        tableMap.put(MobileSensor_Data.TIME, MobileSensor_Data.TIME);
+		tableMap.put(MobileSensor_Data.PARTICIPANT_ID, MobileSensor_Data.PARTICIPANT_ID);
+		tableMap.put(MobileSensor_Data.MULTITASKING, MobileSensor_Data.MULTITASKING);
+		tableMap.put(MobileSensor_Data.MOT, MobileSensor_Data.MOT);
+		tableMap.put(MobileSensor_Data.MOT_CONFIDENCE, MobileSensor_Data.MOT_CONFIDENCE);
+		tableMap.put(MobileSensor_Data.AMBIENT_NOISE, MobileSensor_Data.AMBIENT_NOISE);
+		tableMap.put(MobileSensor_Data.CALLS, MobileSensor_Data.CALLS);
+		tableMap.put(MobileSensor_Data.MESSAGING, MobileSensor_Data.MESSAGING);
+		tableMap.put(MobileSensor_Data.CALENDAR, MobileSensor_Data.CALENDAR);
+		tableMap.put(MobileSensor_Data.EMAIL, MobileSensor_Data.EMAIL);
+		tableMap.put(MobileSensor_Data.INSTALLATIONS, MobileSensor_Data.INSTALLATIONS);
+	}
+	
 	public static final class MobileSensor_Data implements BaseColumns {
 		private MobileSensor_Data(){};
 		/**
@@ -92,10 +116,13 @@ public class MobileSensor_Provider extends ContentProvider {
 		public static final String _ID = "_id";
 		public static final String TIMESTAMP = "timestamp";
 		public static final String DEVICE_ID = "device_id";
+        public static final String DATE = "date";
+        public static final String TIME = "time";
+		public static final String PARTICIPANT_ID = "participant_id";
 		public static final String MULTITASKING = "multitasking";
 		public static final String MOT = "mode_of_transportation";
-		public static final String NOISE_LEVEL = "double_noise_level"; //replicating the database in MySQL requires the keyword double_xxx for real columns from SQLite
-//		public static final String AMBIENT_NOISE = "ambient_noise";
+		public static final String MOT_CONFIDENCE = "mot_confidence";
+		public static final String AMBIENT_NOISE = "ambient_noise";
 		public static final String CALLS = "voice_messaging";
 		public static final String MESSAGING = "text_messaging";
 		public static final String CALENDAR = "calendar_event";
@@ -167,28 +194,8 @@ public class MobileSensor_Provider extends ContentProvider {
 	
 	@Override
 	public boolean onCreate() {
-
-        AUTHORITY = getContext().getPackageName() + ".provider.sos_mobile_sensor";
-
-        sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0], MOBILE_SENSOR); //URI for all records
-        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0]+"/#", MOBILE_SENSOR_ID); //URI for a single record
-
-        tableMap = new HashMap<String, String>();
-        tableMap.put(MobileSensor_Data._ID, MobileSensor_Data._ID);
-        tableMap.put(MobileSensor_Data.TIMESTAMP, MobileSensor_Data.TIMESTAMP);
-        tableMap.put(MobileSensor_Data.DEVICE_ID, MobileSensor_Data.DEVICE_ID);
-        tableMap.put(MobileSensor_Data.MULTITASKING, MobileSensor_Data.MULTITASKING);
-        tableMap.put(MobileSensor_Data.MOT, MobileSensor_Data.MOT);
-        tableMap.put(MobileSensor_Data.NOISE_LEVEL, MobileSensor_Data.NOISE_LEVEL);
-//		tableMap.put(MobileSensor_Data.AMBIENT_NOISE, MobileSensor_Data.AMBIENT_NOISE);
-        tableMap.put(MobileSensor_Data.CALLS, MobileSensor_Data.CALLS);
-        tableMap.put(MobileSensor_Data.MESSAGING, MobileSensor_Data.MESSAGING);
-        tableMap.put(MobileSensor_Data.CALENDAR, MobileSensor_Data.CALENDAR);
-        tableMap.put(MobileSensor_Data.EMAIL, MobileSensor_Data.EMAIL);
-        tableMap.put(MobileSensor_Data.INSTALLATIONS, MobileSensor_Data.INSTALLATIONS);
-
-		return true;
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	/**

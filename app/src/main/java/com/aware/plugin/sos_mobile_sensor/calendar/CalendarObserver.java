@@ -19,8 +19,6 @@ import android.provider.CalendarContract.Reminders;
 import android.util.Log;
 
 import com.aware.plugin.sos_mobile_sensor.Plugin;
-import com.aware.plugin.sos_mobile_sensor.calendar.CalendarEvent;
-
 /**
  * This class observes changes in the calendar with events that have reminders.
  * Perhaps we can incorporate duration later i.e. the time window around an event
@@ -105,7 +103,7 @@ public class CalendarObserver extends ContentObserver {
 						CalendarEvent newEvent = new CalendarEvent(newEventID,name,begin,end,maxReminder);
 						//New event, not deleted; Old event, diff max rem / time (the rem / time has been changed)
 						if(status.equals("0") && !list.contains(newEvent) && calendar.getString(calendar.getColumnIndex(Events.DELETED)).equals("0") 
-								&& maxReminder >= 10
+								&& maxReminder >= 1
 								&& maxReminder <= 60){
 //							Log.d("Calendar", "This event is not in the list");
 //							Log.d("Calendar", "ID: "+newEventID);
