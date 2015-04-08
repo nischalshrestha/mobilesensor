@@ -54,14 +54,14 @@ public class AmbientNoiseObserver extends ContentObserver {
 				String[] mSelectionArgs = new String[1];
 				mSelectionArgs[0] = "";
 				Cursor noiseData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, mSelection, mSelectionArgs, null);
-				//Fire sensor and/or prompt ESM 
+				//Fire sensor and/or prompt ESM
+//                Log.d("Stress", "Time remaining in Ambient Noise: " + (currentTime - lastAmbientESM));
 				if(currentTime - lastAmbientESM >= Plugin.throttle &&
 				   currentTime > newCal.getTimeInMillis()          &&
 				   currentTime < newCal2.getTimeInMillis()         &&
-				   state.equals("noisy")                           || 
-				   noiseData.getCount() < 1                        &&
-				   Calendar.DAY_OF_WEEK > 1                        &&
-				   Calendar.DAY_OF_WEEK < 7 //don't bother on weekends
+				   Calendar.DAY_OF_WEEK > 1                        && //don't bother on weekends
+				   Calendar.DAY_OF_WEEK < 7                        ||
+                   noiseData.getCount() < 1
 				   ) {
 					if(!Plugin.stressInit){
 	                    Plugin.stressInit = true;
@@ -83,6 +83,7 @@ public class AmbientNoiseObserver extends ContentObserver {
 	                    esm.putExtra(ESM.EXTRA_ESM, esmStr);
 	                    if (Plugin.screenIsOn)
 	                        plugin.sendBroadcast(esm);
+                        lastAmbientESM = System.currentTimeMillis();
 	                } else if(Plugin.stressInit 
 	                		&& currentTime-Plugin.initStressorTime < 60000 
 	                		&& !Plugin.initStressor.equals("Ambient Noise")){
@@ -92,7 +93,6 @@ public class AmbientNoiseObserver extends ContentObserver {
                     Plugin.noise_level = db;
                     Plugin.ambient_noise = state;
                     plugin.CONTEXT_PRODUCER.onContext();
-                    lastAmbientESM = System.currentTimeMillis();
                 } else{
                     Plugin.noise_level = db;
                     Plugin.ambient_noise = state;

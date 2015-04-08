@@ -13,7 +13,6 @@ import android.os.HandlerThread;
 import android.provider.CalendarContract.Events;
 import android.provider.CalendarContract.Instances;
 import android.provider.CalendarContract.Reminders;
-//import android.util.Log;
 
 import com.aware.Aware;
 import com.aware.Aware_Preferences;
@@ -44,6 +43,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+
+//import android.util.Log;
 
 //import com.aware.plugin.noise_level.NoiseLevel_Provider.NoiseLevel;
 //import com.aware.plugin.sos_mobile_sensor.observers.NoiseObserver;
@@ -141,10 +142,8 @@ public class Plugin extends Aware_Plugin {
 	public static final long throttle = 3600000;
 	public static long lastThrottleTime;
 	/** Initial user input variables */
-	public static String participantID;
+	public static String participantID = "";
     /** Stressor variables */
-	public static String rating;
-	public static String loudnessRating;
     public static String initStressor = "";
     public static boolean stressInit = false;
     public static long initStressorTime = 0;
@@ -170,7 +169,7 @@ public class Plugin extends Aware_Plugin {
 	public void onCreate() {
 		super.onCreate();
 		TAG = "AWARE::Mobile Sensor";
-		
+        participantID = "";
 		//Our provider tables
 		DATABASE_TABLES = MobileSensor_Provider.DATABASE_TABLES;
 		//Our table fields
@@ -189,7 +188,13 @@ public class Plugin extends Aware_Plugin {
 			@SuppressLint("SimpleDateFormat")
 			@Override
 			public void onContext() {
-				if(null != participantID && Plugin.screenIsOn && Settings.initialized){
+//                Log.d("Context","Pushing data!");
+//                Log.d("Context","participantID: "+participantID);
+//                Log.d("Context","screenIsOn: "+Plugin.screenIsOn);
+//                Log.d("Context", "initialized: "+Settings.initialized);
+//                Log.d("Context", "stressInit: "+Plugin.stressInit);
+				if(Plugin.screenIsOn){
+//                        && Settings.initialized){
 //					Log.d("Context","Pushing data!");
 					//change this to debug any sensor and if they're being inserted when sensed
 					Calendar newCal = new GregorianCalendar();
@@ -256,8 +261,9 @@ public class Plugin extends Aware_Plugin {
 	
 	public void startAwarePlugins(){
 		//Activate plugins
-		Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
-		Aware.startPlugin(this, "com.aware.plugin.ambient_noise");
+//        if(Aware.getSetting(getApplicationContext(),STATUS))
+//		Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
+//		Aware.startPlugin(this, "com.aware.plugin.ambient_noise");
 		screenOnTime = System.currentTimeMillis();
 		lastNegativeESM = screenOnTime;
 		lastThrottleTime = screenOnTime;
@@ -526,7 +532,7 @@ public class Plugin extends Aware_Plugin {
 	                        "'esm_expiration_threashold': 60, " +
 	                        "'esm_trigger': 'Calendar Reminder' }}]";
 	                esm.putExtra(ESM.EXTRA_ESM,esmStr);
-	                if(Plugin.screenIsOn && Plugin.participantID != null)
+	                if(Plugin.screenIsOn)
 	                    sendBroadcast(esm);
                 }
 				long end = eventList.get(ID).end;
@@ -559,7 +565,7 @@ public class Plugin extends Aware_Plugin {
 	                        "'esm_expiration_threashold': 60, " +
 	                        "'esm_trigger': 'Calendar Feedback' }}]";
 	                esm.putExtra(ESM.EXTRA_ESM,esmStr);
-	                if(Plugin.screenIsOn && Plugin.participantID != null)
+	                if(Plugin.screenIsOn)
 	                    sendBroadcast(esm);
                 }
 				event = null;
@@ -778,7 +784,7 @@ public class Plugin extends Aware_Plugin {
 			    		+ "'esm_expiration_threashold': 180, "
 			    		+ "'esm_trigger':'False Negative Test Alarm'}}]";
 				esm.putExtra(ESM.EXTRA_ESM,esmStr);
-				if(Plugin.screenIsOn && Plugin.participantID != null)
+				if(Plugin.screenIsOn)
 					sendBroadcast(esm);	
 				thread_esm_alarm.postDelayed(this, (cal.getTimeInMillis()-System.currentTimeMillis()));
 			}
@@ -810,6 +816,20 @@ public class Plugin extends Aware_Plugin {
 	                newCal.set(Calendar.MINUTE, 0);
 	                newCal.set(Calendar.SECOND, 0);
 	                next = newCal.getTimeInMillis() - System.currentTimeMillis();
+                    Intent esm = new Intent();
+                    esm.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
+                    String esmStr = "[" +
+                            "{'esm': {" +
+                            "'esm_type': 1, " +
+                            "'esm_title': 'Retroactive Question', " +
+                            "'esm_instructions': 'You rated above a 3.0 on the stress rating likert scale "+stressEvents+" times today! "
+                            + "Please describe what affected your ratings today.', " +
+                            "'esm_submit':'Done', " +
+                            "'esm_expiration_threashold': 240, " +
+                            "'esm_trigger': 'Retroactive Question' }}]";
+                    esm.putExtra(ESM.EXTRA_ESM,esmStr);
+                    if(Plugin.screenIsOn)
+                        sendBroadcast(esm);
 	            } else if(hourOfDay == 20){ //8pm retro question
 	                newCal.add(Calendar.DAY_OF_WEEK, 1); //recalculates calendar if at the end
 	                newCal.set(Calendar.HOUR_OF_DAY, 20);
@@ -848,13 +868,13 @@ public class Plugin extends Aware_Plugin {
 		                        "{'esm': {" +
 		                        "'esm_type': 1, " +
 		                        "'esm_title': 'Retroactive Question', " +
-		                        "'esm_instructions': 'You rated above a 3.0 on the stress rating likert scale "+stressEvents+" times today! "
+		                        "'esm_instructions': 'You rated above a 3 on the stress scale "+stressEvents+" times today! "
 		                        + "Please describe what affected your ratings today.', " +
 		                        "'esm_submit':'Done', " +
 		                        "'esm_expiration_threashold': 240, " +
 		                        "'esm_trigger': 'Retroactive Question' }}]";
 		                esm.putExtra(ESM.EXTRA_ESM,esmStr);
-		                if(Plugin.screenIsOn && Plugin.participantID != null)
+		                if(Plugin.screenIsOn)
 		                    sendBroadcast(esm);
 	                }
 	                if(esmDB != null && !esmDB.isClosed()){ esmDB.close(); }

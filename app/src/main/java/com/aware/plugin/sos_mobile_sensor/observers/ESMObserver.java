@@ -22,6 +22,7 @@ public class ESMObserver extends ContentObserver {
 	
 	//Instance of our plugin
 	private Plugin plugin;
+    public static final Handler handler = new Handler();
 	
 	/**
 	 * Initiate ESMObserver ContentObserver with the handler, and plugin for context
@@ -72,7 +73,7 @@ public class ESMObserver extends ContentObserver {
 					ScreenObserver.noStress = false;
 				}
 				if(title.equals("Stress Rating")){
-					Log.d("Stress", "Going to run stress rating verification...");
+//					Log.d("Stress", "Going to run stress rating verification...");
                     Intent rating = new Intent();
                     rating.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
 					String esmStr = 
@@ -85,14 +86,43 @@ public class ESMObserver extends ContentObserver {
                             "'esm_expiration_threashold': 240, " +
                             "'esm_trigger': 'Stress Verification' }}]";
 					rating.putExtra(ESM.EXTRA_ESM, esmStr);
-                    if (Plugin.screenIsOn && Plugin.participantID != null)
+                    if (Plugin.screenIsOn)
                         plugin.sendBroadcast(rating);
                     Plugin.initStressorTime = System.currentTimeMillis();
                     Plugin.stressInit = false;
-                    MultitaskingObserver.lock = false;
                     Plugin.stressCount = 0;
                     Plugin.initStressor = "";
 				}
+                if(Plugin.stressInit		    &&
+                   Plugin.stressCount == 1
+                    ){
+//                    Log.d("Stress", "Going to run stress rating in 1min");
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.d("Stress", "Running stress rating!");
+                            Intent rating = new Intent();
+                            rating.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
+                            String esmStr =
+                                    "[" +
+                                            "{'esm': {" +
+                                            "'esm_type': 4, " +
+                                            "'esm_title': 'Stress Rating', " +
+                                            "'esm_instructions': 'Rate your stress level from 0-5', " +
+                                            "'esm_likert_max':5, "+
+                                            "'esm_likert_max_label':'Very Stressed', "+
+                                            "'esm_likert_min_label':'Not Stressed', "+
+                                            "'esm_likert_step':1, "+
+                                            "'esm_submit':'OK', "+
+                                            "'esm_expiration_threashold': 180, " +
+                                            "'esm_trigger': '"+Plugin.initStressor+"'}}]";
+                            rating.putExtra(ESM.EXTRA_ESM, esmStr);
+                            if (Plugin.screenIsOn)
+                                plugin.sendBroadcast(rating);
+                        }
+                    }, 60000);
+
+                }
 			} else if(trigger.equals("Ambient Noise") && 
 					  status.equals("2")              && 
 					  answer.equals("Yes")
@@ -136,7 +166,7 @@ public class ESMObserver extends ContentObserver {
                             "'esm_expiration_threashold': 240, " +
                             "'esm_trigger': 'Stress Verification' }}]";
                     rating.putExtra(ESM.EXTRA_ESM, esmStr);
-                    if (Plugin.screenIsOn && Plugin.participantID != null)
+                    if (Plugin.screenIsOn)
                         plugin.sendBroadcast(rating);
                     
 				}
@@ -157,7 +187,7 @@ public class ESMObserver extends ContentObserver {
 	                        "'esm_expiration_threashold': 240, " +
 	                        "'esm_trigger': 'Retroactive Question' }}]";
 	                retro.putExtra(ESM.EXTRA_ESM,esmStr);
-	                if(Plugin.screenIsOn && Plugin.participantID != null)
+	                if(Plugin.screenIsOn)
 	                    plugin.sendBroadcast(retro);
 				} else if(trigger.equals("False Negative Test Alarm")){
 					Intent falseNeg = new Intent();
@@ -171,12 +201,30 @@ public class ESMObserver extends ContentObserver {
 				    		+ "'esm_expiration_threashold': 180, "
 				    		+ "'esm_trigger':'False Negative Test Alarm'}}]";
 				    falseNeg.putExtra(ESM.EXTRA_ESM,esmStr);
-					if(Plugin.screenIsOn && Plugin.participantID != null)
+					if(Plugin.screenIsOn)
 						plugin.sendBroadcast(falseNeg);	
-				} else{
+				} else if(title.equals("Stress Rating")){
+                    Intent rating = new Intent();
+                    rating.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
+                    String esmStr =
+                            "[" +
+                                    "{'esm': {" +
+                                    "'esm_type': 4, " +
+                                    "'esm_title': 'Stress Rating', " +
+                                    "'esm_instructions': 'Rate your stress level from 0-5', " +
+                                    "'esm_likert_max':5, "+
+                                    "'esm_likert_max_label':'Very Stressed', "+
+                                    "'esm_likert_min_label':'Not Stressed', "+
+                                    "'esm_likert_step':1, "+
+                                    "'esm_submit':'OK', "+
+                                    "'esm_expiration_threashold': 180, " +
+                                    "'esm_trigger': '"+Plugin.initStressor+"'}}]";
+                    rating.putExtra(ESM.EXTRA_ESM, esmStr);
+                    if (Plugin.screenIsOn)
+                        plugin.sendBroadcast(rating);
+                } else{
                     Plugin.initStressorTime = System.currentTimeMillis();
                     Plugin.stressInit = false;
-                    MultitaskingObserver.lock = false;
                     Plugin.stressCount = 0;
                     Plugin.initStressor = "";
                 }

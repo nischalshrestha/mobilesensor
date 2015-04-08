@@ -1,22 +1,23 @@
 package com.aware.plugin.sos_mobile_sensor.observers;
 
-import java.util.Calendar;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
-//import android.os.Handler;
-//import android.os.HandlerThread;
-//import android.os.Looper;
-//import android.util.Log;
-//import android.util.Log;
 
 import com.aware.Aware;
 import com.aware.Aware_Preferences;
 import com.aware.ESM;
 import com.aware.Screen;
 import com.aware.plugin.sos_mobile_sensor.Plugin;
+
+import java.util.Calendar;
+
+//import android.os.Handler;
+//import android.os.HandlerThread;
+//import android.os.Looper;
+//import android.util.Log;
+//import android.util.Log;
 
 /**
  * This broadcast receiver is meant to detect screen events, more specifically
@@ -85,7 +86,7 @@ public class ScreenObserver extends BroadcastReceiver {
 				                        "'esm_expiration_threashold': 240, " +
 				                        "'esm_trigger': 'No Stress Question' }}]";
 				                esm.putExtra(ESM.EXTRA_ESM,esmStr);
-				                if(Plugin.screenIsOn && Plugin.participantID != null)
+				                if(Plugin.screenIsOn)
 				                    plugin.sendBroadcast(esm);
 		            	    }
 		            	}, 5000);
@@ -95,10 +96,38 @@ public class ScreenObserver extends BroadcastReceiver {
 					}
 				}
 			}
+            if(Plugin.stressInit && System.currentTimeMillis() - Plugin.initStressorTime > 60000){
+//                Log.d("Stress", "Running stress rating!");
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent rating = new Intent();
+                        rating.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
+                        String esmStr =
+                                "[" +
+                                "{'esm': {" +
+                                "'esm_type': 4, " +
+                                "'esm_title': 'Stress Rating', " +
+                                "'esm_instructions': 'Rate your stress level from 0-5', " +
+                                "'esm_likert_max':5, "+
+                                "'esm_likert_max_label':'Very Stressed', "+
+                                "'esm_likert_min_label':'Not Stressed', "+
+                                "'esm_likert_step':1, "+
+                                "'esm_submit':'OK', "+
+                                "'esm_expiration_threashold': 180, " +
+                                "'esm_trigger': '"+Plugin.initStressor+"'}}]";
+                        rating.putExtra(ESM.EXTRA_ESM, esmStr);
+                        if (Plugin.screenIsOn)
+                            plugin.sendBroadcast(rating);
+                    }
+                },5000);
+            }
             Aware.startPlugin(plugin.getApplicationContext(), "com.aware.plugin.google.activity_recognition");
 			Aware.startPlugin(plugin.getApplicationContext(), "com.aware.plugin.ambient_noise");
 		}
 		if(intent.getAction().equals(Screen.ACTION_AWARE_SCREEN_OFF)) {
+            ESMObserver.handler.removeCallbacksAndMessages(null);
 //			if( Aware.DEBUG )
 //				Log.d("Screen","User has turned off the screen");
 			Plugin.screenIsOn = false;

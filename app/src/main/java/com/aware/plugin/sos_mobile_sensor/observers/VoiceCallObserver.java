@@ -50,11 +50,11 @@ public class VoiceCallObserver extends ContentObserver {
 				Cursor callData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, mSelection, mSelectionArgs, null);
 				if(currentTime-lastVoiceESM >= Plugin.throttle       &&
 				   currentTime > morning.getTimeInMillis()           &&
-				   currentTime < evening.getTimeInMillis()           ||
-				   callData.getCount() < 1                           &&
-			       Calendar.DAY_OF_WEEK > 1                  	     &&
-			       Calendar.DAY_OF_WEEK < 7 //don't bother on weekends
-			       ) {					
+				   currentTime < evening.getTimeInMillis()           &&
+			       Calendar.DAY_OF_WEEK > 1                  	     &&//don't bother on weekends
+			       Calendar.DAY_OF_WEEK < 7                          ||
+                   callData.getCount() < 1
+			       ) {
 					if(!Plugin.stressInit){
 	                    Plugin.stressInit = true;
 	                    Plugin.initStressorTime = currentTime;
@@ -75,6 +75,7 @@ public class VoiceCallObserver extends ContentObserver {
 	                    esm.putExtra(ESM.EXTRA_ESM, esmStr);
 	                    if (Plugin.screenIsOn)
 	                        plugin.sendBroadcast(esm);
+                        lastVoiceESM = System.currentTimeMillis();
 		            } else if(Plugin.stressInit 
 		            		&& currentTime-Plugin.initStressorTime < 60000 
 		            		&& !Plugin.initStressor.equals("Calls")){
@@ -84,7 +85,6 @@ public class VoiceCallObserver extends ContentObserver {
                     Plugin.voice_messaging = 1;
                     plugin.CONTEXT_PRODUCER.onContext();
                     Plugin.voice_messaging = 0;
-                    lastVoiceESM = System.currentTimeMillis();
                 } else{
                     Plugin.voice_messaging = 1;
                     plugin.CONTEXT_PRODUCER.onContext();

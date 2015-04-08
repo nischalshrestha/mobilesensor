@@ -2,18 +2,18 @@
 <items version="2" >
 
     <item
-        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.awareframework/aware-core/3.2.8/libs/zbar.jar"
-        jumboMode="false"
-        revision="21.1.2"
-        sha1="0a7b88ba1496a0b4af76069ad40dacd3897149e0">
-        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/zbar-e271d47d022c560372d96458988124015a2c1df1.jar" />
-    </item>
-    <item
         jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.google.android.gms/play-services/6.5.87/classes.jar"
         jumboMode="false"
         revision="21.1.2"
         sha1="dd9247ea0fabe8ee479638c4b4a23e93752be256">
         <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/classes-06e20b285d2a0cc09c8ef860d3c3baee142b3875.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.awareframework/aware-core/3.2.8/libs/zbar.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="0a7b88ba1496a0b4af76069ad40dacd3897149e0">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/zbar-e271d47d022c560372d96458988124015a2c1df1.jar" />
     </item>
     <item
         jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/support-v4/21.0.3/classes.jar"
@@ -30,6 +30,20 @@
         <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/commons-math3-3.3-fc36dc00ef214d616ebb17c67e58745a4b23d0ea.jar" />
     </item>
     <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.awareframework/aware-core/3.3.2/libs/zbar.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="0a7b88ba1496a0b4af76069ad40dacd3897149e0">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/zbar-93505b4c0145ac679892b4ad000008688ad112e7.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.awareframework/aware-core/3.3.2/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="5fd6691315c1289c0c36f8e512f1bf80e3d0124b">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/classes-5757ca3189fc10ef585d440235bdb0de5330a183.jar" />
+    </item>
+    <item
         jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/libs/google_activityrecognition.jar"
         jumboMode="false"
         revision="21.1.2"
@@ -44,11 +58,39 @@
         <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/ambient_noise-7fa1b8b6455878c5bda81b1adfcc7288d7483257.jar" />
     </item>
     <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/cardview-v7/22.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="11842de6a309c447b3a3d60d73ad637a87c58994">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/classes-2eacd74754059cabe3d1df32ee952a0711ab1fc3.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/libs/internal_impl-22.0.0.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="b5b92f469d515a13d778900f6d50c03d12f35504">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/internal_impl-22.0.0-c2d1887c01840caa89ef236bc3c9ec13b77e04d0.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.google.android.gms/play-services/6.5.87/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="dd9247ea0fabe8ee479638c4b4a23e93752be256">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/classes-06e20b285d2a0cc09c8ef860d3c3baee142b3875.jar" />
+    </item>
+    <item
         jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/gridlayout-v7/21.0.3/classes.jar"
         jumboMode="false"
         revision="21.1.2"
         sha1="2e8c06a7aad26ba8d2d5cab8134556594fe36856">
         <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/classes-36a70bcbbe61094313c9ede826221518945c0536.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/libs/google_activityrecognition.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="15b9377cca913820ced0539f619abff0f0f5baa8">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/google_activityrecognition-43c6114684394e1de65632922d8dbe73d19c0c7a.jar" />
     </item>
     <item
         jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/support-v4/21.0.3/libs/internal_impl-21.0.3.jar"
@@ -58,11 +100,32 @@
         <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/internal_impl-21.0.3-9d952f057468822eff29e51e5ff561f897021b00.jar" />
     </item>
     <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/libs/ambient_noise.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="2ba13134c74ad390ea14ea40ffe4f5c6afbb11e8">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/ambient_noise-7fa1b8b6455878c5bda81b1adfcc7288d7483257.jar" />
+    </item>
+    <item
         jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.awareframework/aware-core/3.2.8/classes.jar"
         jumboMode="false"
         revision="21.1.2"
         sha1="0c47b9d9e68a9f0b5a7e4c14453ed467e1f1d3cf">
         <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/classes-c9fdd5e2106b90eece3e7b1f08dd7568e5ada5c4.jar" />
+    </item>
+    <item
+        jar="/home/nischal/Android/Sdk/extras/android/m2repository/com/android/support/support-annotations/22.0.0/support-annotations-22.0.0.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="685d0b2c590447e85284ed84712cb363ba04eff8">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/support-annotations-22.0.0-260f6d036a9033eb10b377b639f630d97cd22b84.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="4e86306289ace4aa0cfec44a05ed2b410d36989d">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/classes-b2f1dc05ef86b506b8c1b4e3e81e101b3013bd67.jar" />
     </item>
     <item
         jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/21.0.3/classes.jar"
@@ -93,11 +156,46 @@
         <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/support-annotations-21.0.3-7c899903359a3363f9aef8a7411f16df5b8e0ae4.jar" />
     </item>
     <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/libs/commons-math3-3.3.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="a85dc3aa929de625606270ae69a343cda69b7670">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/commons-math3-3.3-fc36dc00ef214d616ebb17c67e58745a4b23d0ea.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="d84409890828e07d344a3b9b1da545dba9897b51">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/classes-30eee36a9f382b2a60ac91907ee96cdf98430a99.jar" />
+    </item>
+    <item
         jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.awareframework/aware-core/3.2.8/libs/mqtt-client-0.4.0.jar"
         jumboMode="false"
         revision="21.1.2"
         sha1="02315d1759d01e52495e040e6e538aaa2e91c7f6">
         <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/debug/mqtt-client-0.4.0-8b195c7a09ca7f4659ea3ade210084af46c34dfe.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.android.support/gridlayout-v7/21.0.3/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="2e8c06a7aad26ba8d2d5cab8134556594fe36856">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/classes-36a70bcbbe61094313c9ede826221518945c0536.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/libs/android-comboseekbar-master.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="0615f7c47860ef67bb130895dc0f02913228ff51">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/android-comboseekbar-master-62c287864ae081654ab894f290e9fe138266d146.jar" />
+    </item>
+    <item
+        jar="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/exploded-aar/com.awareframework/aware-core/3.3.2/libs/mqtt-client-0.4.0.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="02315d1759d01e52495e040e6e538aaa2e91c7f6">
+        <dex dex="/home/nischal/AndroidstudioProjects/SOS_Mobile_Sensor/app/build/intermediates/pre-dexed/release/mqtt-client-0.4.0-d5f62b9df220023eccdc317ed0bafb3679e2a9b2.jar" />
     </item>
 
 </items>

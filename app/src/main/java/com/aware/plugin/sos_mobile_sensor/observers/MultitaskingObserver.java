@@ -10,7 +10,6 @@ import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
-import android.util.Log;
 
 import com.aware.ESM;
 import com.aware.plugin.sos_mobile_sensor.MobileSensor_Provider.MobileSensor_Data;
@@ -43,7 +42,7 @@ public class MultitaskingObserver extends ContentObserver {
 	public static long lastMultiESM;
 	public static long lastEmailESM;
 	//Different from throttle; window for false positives
-	public final static long timeWindow = 60000; 
+	public final static long timeWindow = 30000;
 	private String newApp;
 	private int switches = 0;
     private static String appA = "";
@@ -61,9 +60,7 @@ public class MultitaskingObserver extends ContentObserver {
     private static String chatAppDetected = "";
     //Threshold
     public final static int MAX_SWITCHES = 2;
-    
-    public static boolean lock = false;
-	
+
     /**
      * Construct for the Multitasking ContentObserver with the handler, and plugin for context
      * Adds chat apps to the list of chatApps for text messaging sensor
@@ -140,43 +137,8 @@ public class MultitaskingObserver extends ContentObserver {
 		super.onChange(selfChange);
 //        Log.d("Multitasking", "Going to run stress rating prompt in 1 minute...");
 		if(Plugin.screenIsOn){
-			Cursor multitask = plugin.getContentResolver().query(Applications_Foreground.CONTENT_URI, null, null, null, Applications_Foreground.TIMESTAMP + " DESC");
+			Cursor multitask = plugin.getContentResolver().query(Applications_Foreground.CONTENT_URI, null, null, null, Applications_Foreground.TIMESTAMP + " DESC LIMIT 1");
 			Long currentTime = System.currentTimeMillis();
-			//A stressor fired and has waited 5 minutes
-			//Case 1: more stressors (provide list for verification
-			if(!lock															&&
-				Plugin.stressInit											    && 
-			   (System.currentTimeMillis() - Plugin.initStressorTime >= 60000)  &&
-			    Calendar.DAY_OF_WEEK > 1 										&&
-                Calendar.DAY_OF_WEEK < 7
-			   ) {
-				Log.d("Stress", "Going to run stress rating prompt in 1 minute...");
-				lock = true;
-				final Handler handler = new Handler();
-				handler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						Intent rating = new Intent();
-	                    rating.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
-	                    String esmStr =
-	                            "[" +
-	                            "{'esm': {" +
-	                            "'esm_type': 4, " +
-	                            "'esm_title': 'Stress Rating', " +
-	                            "'esm_instructions': 'Rate your stress level from 0-5', " +
-	                            "'esm_likert_max':5, "+
-	                            "'esm_likert_max_label':'Very Stressed', "+
-	                            "'esm_likert_min_label':'Not Stressed', "+
-	                            "'esm_likert_step':1, "+
-	                            "'esm_submit':'OK', "+
-	                            "'esm_expiration_threashold': 180, " +
-	                            "'esm_trigger': '"+Plugin.initStressor+"'}}]";
-	                    rating.putExtra(ESM.EXTRA_ESM, esmStr);
-	                    if (Plugin.screenIsOn && Plugin.participantID != null)
-	                        plugin.sendBroadcast(rating);
-					}
-				}, 60000);
-            }
 			Calendar morning = new GregorianCalendar();
 			morning.set(Calendar.HOUR_OF_DAY, Plugin.MORNING);
 			morning.set(Calendar.MINUTE, 0);
@@ -191,12 +153,11 @@ public class MultitaskingObserver extends ContentObserver {
 			Cursor multiData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, mSelection, mSelectionArgs, null);
 			if( multitask != null && multitask.moveToFirst()) {
 				newApp = multitask.getString(multitask.getColumnIndex(Applications_Foreground.APPLICATION_NAME));
-//				Log.d("Multitasking","User is using an app: "+newApp);
 				Long timestamp = multitask.getLong(multitask.getColumnIndex(Applications_Foreground.TIMESTAMP));
 	            Long result = timestamp - lastMultitasking;
 	            if(result > 0 && result < timeWindow){ //only look at apps used within 1 minute
 	            	//Text messaging; popular chat apps
-					if(!newApp.equals(chatAppDetected)){
+//					if(!newApp.equals(chatAppDetected)){
 						for(String s : chatApps){
 							if(newApp.equals(s)){
 								chatAppDetected = newApp;
@@ -207,10 +168,10 @@ public class MultitaskingObserver extends ContentObserver {
 								//send an esm intent
 								if(currentTime-MessageObserver.lastMessageESM >= Plugin.throttle    &&
 								   currentTime > morning.getTimeInMillis()							&&
-								   currentTime < evening.getTimeInMillis()                          ||
-								   textData.getCount() < 1											&&
+								   currentTime < evening.getTimeInMillis()                          &&
 					               Calendar.DAY_OF_WEEK > 1 										&&
-					               Calendar.DAY_OF_WEEK < 7
+					               Calendar.DAY_OF_WEEK < 7                                         ||
+                                   textData.getCount() < 1
 								   ){
 									if(!Plugin.stressInit){
 						                Plugin.stressInit = true;
@@ -232,13 +193,13 @@ public class MultitaskingObserver extends ContentObserver {
 	                                    esm.putExtra(ESM.EXTRA_ESM,esmStr);
 	                                    if(Plugin.screenIsOn)
 	                                        plugin.sendBroadcast(esm);
+                                        MessageObserver.lastMessageESM = System.currentTimeMillis();
 							        }
 							        if(Plugin.stressInit 
 							        		&& currentTime-Plugin.initStressorTime < 60000 
 							        		&& !Plugin.initStressor.equals("Text Messaging")){
 							            Plugin.stressCount++;
 							        }
-                                    MessageObserver.lastMessageESM = System.currentTimeMillis();
                                     Plugin.text_messaging = 1;
                                     plugin.CONTEXT_PRODUCER.onContext();
                                     Plugin.text_messaging = 0;
@@ -250,9 +211,9 @@ public class MultitaskingObserver extends ContentObserver {
 
 							}
 						}
-					}
+//					}
 					//Email
-					if(timestamp-lastEmailESM >= timeWindow){
+//					if(timestamp-lastEmailESM >= timeWindow){
 						for(String s : emailApps){
 							if(newApp.equals(s)){
 								String eSelection = "email == ?";
@@ -262,10 +223,10 @@ public class MultitaskingObserver extends ContentObserver {
 								//send an esm intent
 								if(currentTime-lastEmailESM >= Plugin.throttle  &&
 								   currentTime > morning.getTimeInMillis()		&&
-								   currentTime < evening.getTimeInMillis()      ||
-								   emailData.getCount() < 1						&&
+								   currentTime < evening.getTimeInMillis()      &&
 					               Calendar.DAY_OF_WEEK > 1 					&&
-					               Calendar.DAY_OF_WEEK < 7
+					               Calendar.DAY_OF_WEEK < 7                     ||
+                                   emailData.getCount() < 1
 								   ){
 									if(!Plugin.stressInit){
 						                Plugin.stressInit = true;
@@ -287,6 +248,7 @@ public class MultitaskingObserver extends ContentObserver {
 	                                    esm.putExtra(ESM.EXTRA_ESM,esmStr);
 	                                    if(Plugin.screenIsOn)
 	                                        plugin.sendBroadcast(esm);
+                                        lastEmailESM = System.currentTimeMillis();
 							        } else if(Plugin.stressInit 
 							        		&& currentTime-Plugin.initStressorTime < 60000 
 							        		&& !Plugin.initStressor.equals("Email")){
@@ -294,7 +256,6 @@ public class MultitaskingObserver extends ContentObserver {
 							        }
 //									Log.d("Flag","Inside Email: "+Plugin.normal);
 									//Share context
-                                    lastEmailESM = System.currentTimeMillis();
                                     Plugin.email = 1;
                                     plugin.CONTEXT_PRODUCER.onContext();
                                     Plugin.email = 0;
@@ -305,7 +266,7 @@ public class MultitaskingObserver extends ContentObserver {
                                 }
 							}
 						}
-					}
+//					}
 	            	//set appB, the home and app switcher apps
 					//set appA and appC the two apps the user is switching btw
 	            	if(!excludedApps.contains(newApp)){
@@ -339,10 +300,10 @@ public class MultitaskingObserver extends ContentObserver {
 					lastMultitasking = System.currentTimeMillis();
 					if(currentTime-lastMultiESM >= Plugin.throttle		&&
 					   currentTime > morning.getTimeInMillis()			&&
-					   currentTime < evening.getTimeInMillis()          ||
-					   multiData.getCount() < 1							&&
+					   currentTime < evening.getTimeInMillis()			&&
 		               Calendar.DAY_OF_WEEK > 1 						&&
-		               Calendar.DAY_OF_WEEK < 7
+		               Calendar.DAY_OF_WEEK < 7                         ||
+                       multiData.getCount() < 1
 					   ){
 						if(!Plugin.stressInit){
 			                Plugin.stressInit = true;
@@ -362,6 +323,7 @@ public class MultitaskingObserver extends ContentObserver {
 	                        esm.putExtra(ESM.EXTRA_ESM,esmStr);
 	                        if(Plugin.screenIsOn)
 	                            plugin.sendBroadcast(esm);
+                            lastMultiESM = System.currentTimeMillis();
 				        } else if(Plugin.stressInit 
 				        		&& currentTime-Plugin.initStressorTime < 60000 
 				        		&& !Plugin.initStressor.equals("Multitasking")){
@@ -379,7 +341,6 @@ public class MultitaskingObserver extends ContentObserver {
                         plugin.CONTEXT_PRODUCER.onContext();
                         Plugin.multitasking = 0;
                     }
-                    lastMultiESM = System.currentTimeMillis();
 					//Reset
 					appA = "";
 					appB = "";

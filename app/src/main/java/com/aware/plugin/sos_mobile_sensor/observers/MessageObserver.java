@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.os.Handler;
-//import android.util.Log;
 
 import com.aware.ESM;
 import com.aware.plugin.sos_mobile_sensor.MobileSensor_Provider.MobileSensor_Data;
@@ -13,6 +12,8 @@ import com.aware.providers.Communication_Provider.Messages_Data;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+
+//import android.util.Log;
 
 /**
  * A ContentObserver that will detect when the user is texting
@@ -66,10 +67,10 @@ public class MessageObserver extends ContentObserver {
 //				Log.d("Text", "Count: " + textData.getCount());
 				if(currentTime-lastMessageESM >= Plugin.throttle    &&
 				   currentTime > morning.getTimeInMillis()          &&
-				   currentTime < evening.getTimeInMillis()          ||
-				   textData.getCount() < 1                          &&
+				   currentTime < evening.getTimeInMillis()          &&
 				   Calendar.DAY_OF_WEEK > 1                  	    &&
-				   Calendar.DAY_OF_WEEK < 7 //don't bother on weekends
+				   Calendar.DAY_OF_WEEK < 7                         ||
+                   textData.getCount() < 1//don't bother on weekends
 				   ) {
 					if(!Plugin.stressInit){
 				        Plugin.stressInit = true;
@@ -87,8 +88,9 @@ public class MessageObserver extends ContentObserver {
 	                            "'esm_expiration_threashold': 180, " +
 	                            "'esm_trigger': 'Text Messaging' }}]";
 	                    Intent esm = new Intent().setAction("ESM.ACTION_AWARE_QUEUE_ESM").putExtra(ESM.EXTRA_ESM,esmStr);
-	                    if(Plugin.screenIsOn && Plugin.stressInit)
+	                    if(Plugin.screenIsOn)
 	                        plugin.sendBroadcast(esm);
+                        lastMessageESM = System.currentTimeMillis();
 	                }
 	                if(Plugin.stressInit 
 	                		&& currentTime-Plugin.initStressorTime < 60000 
@@ -98,7 +100,6 @@ public class MessageObserver extends ContentObserver {
                     Plugin.text_messaging = 1;
                     plugin.CONTEXT_PRODUCER.onContext();
                     Plugin.text_messaging = 0;
-                    lastMessageESM = System.currentTimeMillis();
                 } else if(prevSent != null && !prevSent.equals(action)){
                     Plugin.text_messaging = 1;
                     plugin.CONTEXT_PRODUCER.onContext();

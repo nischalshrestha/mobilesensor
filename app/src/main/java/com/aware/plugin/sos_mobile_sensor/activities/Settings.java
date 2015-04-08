@@ -1,5 +1,6 @@
 package com.aware.plugin.sos_mobile_sensor.activities;
 
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -24,7 +25,10 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.v4.view.accessibility.AccessibilityEventCompat;
+import android.support.v4.view.accessibility.AccessibilityManagerCompat;
 import android.util.Log;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
@@ -43,6 +47,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * The main user interface that lets you activate/deactivate 
@@ -58,8 +63,7 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	* Broadcasted event: the user has turned on his phone
 	*/
 	public static final String STATUS_PLUGIN_SOS_MOBILE_SENSOR = "status_plugin_sos_mobile_sensor";
-	
-	private static Settings activity;
+
 	@SuppressWarnings("unused")
 	private boolean registered = false;
 	public static boolean initialized = false;
@@ -73,10 +77,6 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 
 	private static String filename;
 	private static String url = "http://www.awareframework.com/";
-	
-	public static Settings getInstance(){
-		return activity;
-	}
 	
 	private SharedPreferences prefs;
 	private String downloadCompleteIntentName = DownloadManager.ACTION_DOWNLOAD_COMPLETE;
@@ -224,28 +224,27 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	@SuppressWarnings("deprecation")
 	private void initialize(){
 		//Enter the participant ID
-		final EditText inputID = new EditText(Settings.this);
-		final AlertDialog idDialog =  new AlertDialog.Builder(Settings.this).create();
-//		idDialog.setTitle("Device Name");
-		idDialog.setTitle("Participant ID");
-		idDialog.setMessage("Please enter the participant ID");
-		idDialog.setButton("Ok", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Plugin.participantID = inputID.getText().toString();
-				initialized = true;
-			}
-		});
-	    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-	                        LinearLayout.LayoutParams.MATCH_PARENT,
-	                        LinearLayout.LayoutParams.MATCH_PARENT);
-	    inputID.setLayoutParams(lp);
-	    idDialog.setView(inputID);
-	    idDialog.setCancelable(false);
+//		final EditText inputID = new EditText(Settings.this);
+//		final AlertDialog idDialog =  new AlertDialog.Builder(Settings.this).create();
+////		idDialog.setTitle("Device Name");
+//		idDialog.setTitle("Participant ID");
+//		idDialog.setMessage("Please enter the participant ID");
+//		idDialog.setButton("Ok", new DialogInterface.OnClickListener() {
+//			@Override
+//			public void onClick(DialogInterface dialog, int which) {
+//				Plugin.participantID = inputID.getText().toString();
+//				initialized = true;
+//			}
+//		});
+//	    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+//	                        LinearLayout.LayoutParams.MATCH_PARENT,
+//	                        LinearLayout.LayoutParams.MATCH_PARENT);
+//	    inputID.setLayoutParams(lp);
+//	    idDialog.setView(inputID);
+//	    idDialog.setCancelable(false);
 
 		//Make user turn on accessibility
-	    if(activity == null){
-	    	activity = this;
+	    if(!isAccessibilityServiceActive(getApplicationContext())){
         	AlertDialog accessibility;
     	    AlertDialog.Builder builder = new AlertDialog.Builder(Settings.this);
     	    builder.setMessage("Please activate AWARE on the Accessibility Services!");
@@ -256,14 +255,32 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
                     Intent accessibilitySettings = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
                     accessibilitySettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT );
                     startActivity(accessibilitySettings);
-            	    idDialog.show();
+//            	    idDialog.show();
                 }
             });
             accessibility = builder.create();
         	accessibility.show();
         }
+//        else if(null == Plugin.participantID){
+//            idDialog.show();
+//        }
 	}
-	
+
+
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    public static boolean isAccessibilityServiceActive(Context c) {
+        AccessibilityManager accessibilityManager = (AccessibilityManager) c.getSystemService(ACCESSIBILITY_SERVICE);
+        List<AccessibilityServiceInfo> runningServices = AccessibilityManagerCompat.getEnabledAccessibilityServiceList(accessibilityManager, AccessibilityEventCompat.TYPES_ALL_MASK);
+        for (AccessibilityServiceInfo service : runningServices) {
+            Log.d(Aware.TAG, service.toString());
+            if (service.getId().contains("com.aware")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 	@Override
 	protected void onPause(){
 		super.onPause();
@@ -277,7 +294,7 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
         getApplicationContext().registerReceiver(downloadCompleteReceiver, downloadCompleteIntentFilter);
 		registered = true;
 		prefs.registerOnSharedPreferenceChangeListener(this);
-        if(!initialized && appInstalledOrNot("com.aware")){
+        if(!initialized){
         	initialize();
         }
     }
