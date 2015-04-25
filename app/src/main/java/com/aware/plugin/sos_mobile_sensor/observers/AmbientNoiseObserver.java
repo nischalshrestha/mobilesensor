@@ -58,9 +58,11 @@ public class AmbientNoiseObserver extends ContentObserver {
 //                Log.d("Stress", "Time remaining in Ambient Noise: " + (currentTime - lastAmbientESM));
 				if(currentTime - lastAmbientESM >= Plugin.throttle &&
 				   currentTime > newCal.getTimeInMillis()          &&
-				   currentTime < newCal2.getTimeInMillis()         &&
-				   Calendar.DAY_OF_WEEK > 1                        && //don't bother on weekends
-				   Calendar.DAY_OF_WEEK < 7                        ||
+				   currentTime < newCal2.getTimeInMillis()
+//                        &&
+//				   Calendar.DAY_OF_WEEK > 1                        && //don't bother on weekends
+//				   Calendar.DAY_OF_WEEK < 7                        
+                        ||
                    noiseData.getCount() < 1
 				   ) {
 					if(!Plugin.stressInit){

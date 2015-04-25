@@ -57,9 +57,11 @@ public class ActivityObserver extends BroadcastReceiver {
 //                    Log.d("Stress", "Time remaining in Activity: " + (currentTime - lastActivityESM));
 					if(currentTime-lastActivityESM >= Plugin.throttle 	&&
 					   currentTime > morning.getTimeInMillis()   		&&
-					   currentTime < evening.getTimeInMillis()			&&
-					   Calendar.DAY_OF_WEEK > 1                  		&& //don't bother on weekends
-					   Calendar.DAY_OF_WEEK < 7                         ||
+					   currentTime < evening.getTimeInMillis()
+//                            &&
+//					   Calendar.DAY_OF_WEEK > 1                  		&& //don't bother on weekends
+//					   Calendar.DAY_OF_WEEK < 7
+                            ||
                        motData.getCount() < 1
 					   ) {
 	                    if(!Plugin.stressInit){

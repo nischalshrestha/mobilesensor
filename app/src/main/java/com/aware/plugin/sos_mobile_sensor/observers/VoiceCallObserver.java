@@ -50,9 +50,11 @@ public class VoiceCallObserver extends ContentObserver {
 				Cursor callData = plugin.getContentResolver().query(MobileSensor_Data.CONTENT_URI, null, mSelection, mSelectionArgs, null);
 				if(currentTime-lastVoiceESM >= Plugin.throttle       &&
 				   currentTime > morning.getTimeInMillis()           &&
-				   currentTime < evening.getTimeInMillis()           &&
-			       Calendar.DAY_OF_WEEK > 1                  	     &&//don't bother on weekends
-			       Calendar.DAY_OF_WEEK < 7                          ||
+				   currentTime < evening.getTimeInMillis()
+//                        &&
+//			       Calendar.DAY_OF_WEEK > 1                  	     &&//don't bother on weekends
+//			       Calendar.DAY_OF_WEEK < 7
+                        ||
                    callData.getCount() < 1
 			       ) {
 					if(!Plugin.stressInit){

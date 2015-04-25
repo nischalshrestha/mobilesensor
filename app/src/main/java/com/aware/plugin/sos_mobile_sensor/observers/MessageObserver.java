@@ -67,9 +67,11 @@ public class MessageObserver extends ContentObserver {
 //				Log.d("Text", "Count: " + textData.getCount());
 				if(currentTime-lastMessageESM >= Plugin.throttle    &&
 				   currentTime > morning.getTimeInMillis()          &&
-				   currentTime < evening.getTimeInMillis()          &&
-				   Calendar.DAY_OF_WEEK > 1                  	    &&
-				   Calendar.DAY_OF_WEEK < 7                         ||
+				   currentTime < evening.getTimeInMillis()
+//                        &&
+//				   Calendar.DAY_OF_WEEK > 1                  	    &&
+//				   Calendar.DAY_OF_WEEK < 7
+                        ||
                    textData.getCount() < 1//don't bother on weekends
 				   ) {
 					if(!Plugin.stressInit){
