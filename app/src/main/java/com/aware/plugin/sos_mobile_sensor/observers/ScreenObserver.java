@@ -56,10 +56,9 @@ public class ScreenObserver extends BroadcastReceiver {
 					   Plugin.text_messaging == 0				&&
 					   Plugin.calendar_event != ""				&&
 					   Plugin.email == 0						&&
-					   Plugin.voice_messaging == 0
-//                            &&
-//					   Calendar.DAY_OF_WEEK > 1 				&&
-//					   Calendar.DAY_OF_WEEK < 7
+					   Plugin.voice_messaging == 0              &&
+					   Calendar.DAY_OF_WEEK > 1 				&&
+					   Calendar.DAY_OF_WEEK < 7
 					   ){
 						noStress = true;
 						plugin.CONTEXT_PRODUCER.onContext();
@@ -88,7 +87,7 @@ public class ScreenObserver extends BroadcastReceiver {
 					}
 				}
 			}
-            //It's been more than 5 min since last stressor fired
+            //It's been more than 1 min since last stressor fired
             if(Plugin.stressInit && System.currentTimeMillis() - Plugin.initStressorTime > 60000){
 //                Log.d("Stress", "Running stress rating!");
                 ESMObserver.lock = true;
@@ -109,7 +108,7 @@ public class ScreenObserver extends BroadcastReceiver {
                                 "'esm_likert_min_label':'Not Stressed', "+
                                 "'esm_likert_step':1, "+
                                 "'esm_submit':'OK', "+
-                                "'esm_expiration_threashold': 30, " +
+                                "'esm_expiration_threashold': 120, " +
                                 "'esm_trigger': '"+Plugin.initStressor+"'}}]";
                         rating.putExtra(ESM.EXTRA_ESM, esmStr);
                         if (Plugin.screenIsOn)
@@ -117,16 +116,12 @@ public class ScreenObserver extends BroadcastReceiver {
                     }
                 },5000);
             }
-//            Aware.startPlugin(plugin.getApplicationContext(), "com.aware.plugin.google.activity_recognition");
-//			Aware.startPlugin(plugin.getApplicationContext(), "com.aware.plugin.ambient_noise");
 		}
 		if(intent.getAction().equals(Screen.ACTION_AWARE_SCREEN_OFF)) {
 //			if( Aware.DEBUG )
 //				Log.d("Screen","User has turned off the screen");
             ESMObserver.handler.removeCallbacksAndMessages(null);
 			Plugin.screenIsOn = false;
-//			Aware.stopPlugin(plugin.getApplicationContext(), "com.aware.plugin.google.activity_recognition");
-//			Aware.stopPlugin(plugin.getApplicationContext(), "com.aware.plugin.ambient_noise");
 		}
 	}
 	

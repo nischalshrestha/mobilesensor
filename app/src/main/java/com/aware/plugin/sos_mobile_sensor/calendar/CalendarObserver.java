@@ -1,11 +1,6 @@
 package com.aware.plugin.sos_mobile_sensor.calendar;
 
 //import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-//import java.util.Date;
-import java.util.GregorianCalendar;
-
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.database.ContentObserver;
@@ -19,6 +14,12 @@ import android.provider.CalendarContract.Reminders;
 import android.util.Log;
 
 import com.aware.plugin.sos_mobile_sensor.Plugin;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+//import java.util.Date;
 /**
  * This class observes changes in the calendar with events that have reminders.
  * Perhaps we can incorporate duration later i.e. the time window around an event
@@ -73,14 +74,7 @@ public class CalendarObserver extends ContentObserver {
 							instances.moveToNext();
 							end = instances.getLong(2);
 						}
-//						String hasAlarm = calendar.getString(calendar.getColumnIndex(Events.HAS_ALARM));
-//						String deleted = calendar.getString(calendar.getColumnIndex(Events.DELETED));
 						String name = calendar.getString(calendar.getColumnIndex(Events.TITLE));
-//						Date d = new Date(begin);
-//						Date d1 = new Date(end);
-//						SimpleDateFormat sdf = new SimpleDateFormat("M-dd-yyyy k:mm:ss");
-//						String beginTime = sdf.format(d);
-//						String endTime = sdf.format(d1);
 						String[] toReturn = {""};
 						toReturn[0] = ""+newEventID;
 						Cursor alerts = plugin.getContentResolver().query(CalendarAlerts.CONTENT_URI, null, "event_id = ?", toReturn, null);
@@ -105,15 +99,6 @@ public class CalendarObserver extends ContentObserver {
 						if(status.equals("0") && !list.contains(newEvent) && calendar.getString(calendar.getColumnIndex(Events.DELETED)).equals("0") 
 								&& maxReminder >= 1
 								&& maxReminder <= 60){
-//							Log.d("Calendar", "This event is not in the list");
-//							Log.d("Calendar", "ID: "+newEventID);
-//							Log.d("Calendar", "Name: "+name);
-//							Log.d("Calendar", "Begins: "+beginTime);
-//							Log.d("Calendar", "Ends: "+endTime);
-//							Log.d("Calendar", "Alarm: "+hasAlarm);
-//							Log.d("Calendar", "Deleted: "+deleted);
-//							Log.d("Calendar", "Max Reminder: "+maxReminder);
-//							Log.d("Calendar","---------------");
 							CalendarEvent toRemove = null;
 							int ID = 0;
 							for(CalendarEvent e : list){
@@ -132,37 +117,19 @@ public class CalendarObserver extends ContentObserver {
 						//An old event needs to be deleted; user has deleted the reminders; or, the reminder has been fired (status = 1)
 						else if(status.equals("1") || calendar.getString(calendar.getColumnIndex(Events.DELETED)).equals("1") || maxReminder == 0){
 //							Log.d("Calendar", "To remove event with delete status : "+calendar.getString(calendar.getColumnIndex(Events.TITLE)));
-							//print list
-//							Log.d("Reminder","**********");
-//							for(CalendarEvent event : list){
-//								Log.d("Reminder",event.getTitle());
-//							}
-//							Log.d("Reminder","eventlist size: "+list.size());
-//							Log.d("Reminder","**********");
 							//Find event idx to remove
 							int ID = 0;
 							int existingEvent = 0;
 							for(CalendarEvent e : list){
 								if(e.id.equals(newEvent.id)){
-//									Log.d("Reminder","e ID: "+e.getId());
-//									Log.d("Reminder","newEvent ID: "+newEvent.getId());
-//									Log.d("Reminder","event name: "+e.getTitle()+" newEvent name: "+newEvent.getTitle());
 									existingEvent++;
 									break;
 								}
 								ID++;
 							}
-//							Log.d("Reminder","Existing event num: "+existingEvent);
-//						    if(existingEvent == 0 && maxReminder == 0){
-//								Log.d("Reminder","Event, "+newEvent.getTitle()+" not valid");
-//							}
 							//if user deleted event or deleted its reminders
 //						    Log.d("Reminder","Deleted? "+calendar.getString(calendar.getColumnIndex(Events.DELETED)).equals("1"));
 							if((calendar.getString(calendar.getColumnIndex(Events.DELETED)).equals("1") || maxReminder == 0) && existingEvent > 0){
-//								Log.d("Reminder","ID "+ID);
-//								Log.d("Reminder","Deleted? "+calendar.getString(calendar.getColumnIndex(Events.DELETED)).equals("1"));
-//								Log.d("Reminder","Reminder deleted? "+(maxReminder == 0));
-//								Log.d("Reminder","Reminder fired? "+status.equals("1"));
 								if(Plugin.eventList.size() > 0)
 									plugin.removeEvent(ID); //remove from eventList array
 							}

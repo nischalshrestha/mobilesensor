@@ -178,7 +178,7 @@ public class Plugin extends Aware_Plugin {
 		
 		startAwareSensors();
 		initializeThreads();
-		startAwarePlugins();
+		initializeSensorVariables();
 		startAlarms();
 		startContentObservers();
 		
@@ -258,11 +258,7 @@ public class Plugin extends Aware_Plugin {
 		sendBroadcast(apply);
 	}
 	
-	public void startAwarePlugins(){
-		//Activate plugins
-//        if(Aware.getSetting(getApplicationContext(),STATUS))
-//		Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
-//		Aware.startPlugin(this, "com.aware.plugin.ambient_noise");
+	public void initializeSensorVariables(){
 		screenOnTime = System.currentTimeMillis();
 		lastNegativeESM = screenOnTime;
         initStressorTime = screenOnTime;
@@ -518,7 +514,7 @@ public class Plugin extends Aware_Plugin {
                 //Share context
                 CONTEXT_PRODUCER.onContext();
                 Plugin.calendar_event = "0";
-//                if(Calendar.DAY_OF_WEEK > 1 && Calendar.DAY_OF_WEEK < 7){
+                if(Calendar.DAY_OF_WEEK > 1 && Calendar.DAY_OF_WEEK < 7){
 	                Intent esm = new Intent();
 	                esm.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
 	                String esmStr = "[" +
@@ -532,7 +528,7 @@ public class Plugin extends Aware_Plugin {
 	                esm.putExtra(ESM.EXTRA_ESM,esmStr);
 	                if(Plugin.screenIsOn)
 	                    sendBroadcast(esm);
-//                }
+                }
 				long end = eventList.get(ID).end;
 				thread_calendar_alarms.get(ID).postDelayed(this, end-System.currentTimeMillis()+120000);
 			} else{  //This is the follow up
@@ -551,7 +547,7 @@ public class Plugin extends Aware_Plugin {
                 //Share context
                 CONTEXT_PRODUCER.onContext();
                 Plugin.calendar_event = "0";
-//                if(Calendar.DAY_OF_WEEK > 1 && Calendar.DAY_OF_WEEK < 7){
+                if(Calendar.DAY_OF_WEEK > 1 && Calendar.DAY_OF_WEEK < 7){
 	                Intent esm = new Intent();
 	                esm.setAction(ESM.ACTION_AWARE_QUEUE_ESM);
 	                String esmStr = "[" +
@@ -565,7 +561,7 @@ public class Plugin extends Aware_Plugin {
 	                esm.putExtra(ESM.EXTRA_ESM,esmStr);
 	                if(Plugin.screenIsOn)
 	                    sendBroadcast(esm);
-//                }
+                }
 				event = null;
 				stopCalendarAlarm(ID);
 			}
@@ -766,10 +762,9 @@ public class Plugin extends Aware_Plugin {
 				}
 			}
 			//Prompt questionnaire for MoT
-			if(hourOfDay >= NOON
-//                    &&
-//			   Calendar.DAY_OF_WEEK > 1 	&&
-//			   Calendar.DAY_OF_WEEK < 7
+			if(hourOfDay >= NOON            &&
+			   Calendar.DAY_OF_WEEK > 1 	&&
+			   Calendar.DAY_OF_WEEK < 7
 				){
 				lastNegativeESM = cal.getTimeInMillis();				
 				Intent esm = new Intent();
@@ -802,7 +797,7 @@ public class Plugin extends Aware_Plugin {
 			cal = new GregorianCalendar();
 			Calendar newCal = new GregorianCalendar();
 			long next = 0;
-//			if(Calendar.DAY_OF_WEEK > 1 && Calendar.DAY_OF_WEEK < 7){ //don't bother on weekends
+			if(Calendar.DAY_OF_WEEK > 1 && Calendar.DAY_OF_WEEK < 7){ //don't bother on weekends
 	            int hourOfDay = Calendar.HOUR_OF_DAY;
 	            if((hourOfDay >= 0 || hourOfDay == 24) && hourOfDay < 8){ //0am
 	                newCal.set(Calendar.HOUR_OF_DAY, 20);
@@ -870,18 +865,17 @@ public class Plugin extends Aware_Plugin {
 	                newCal.set(Calendar.SECOND, 0);
 	                next = newCal.getTimeInMillis() - System.currentTimeMillis();
 	            }
-//			}
-//        else{
-//				if(Calendar.DAY_OF_WEEK == 1){
-//					newCal.add(Calendar.DAY_OF_WEEK, 1); //have it delayed until the next day
-//				} else{
-//					newCal.add(Calendar.DAY_OF_WEEK, 2); //have it delayed until next 2 days
-//				}
-//				newCal.set(Calendar.HOUR_OF_DAY, 20);
-//                newCal.set(Calendar.MINUTE, 0);
-//                newCal.set(Calendar.SECOND, 0);
-//                next = newCal.getTimeInMillis() - System.currentTimeMillis();
-//			}
+			} else{
+				if(Calendar.DAY_OF_WEEK == 1){
+					newCal.add(Calendar.DAY_OF_WEEK, 1); //have it delayed until the next day
+				} else{
+					newCal.add(Calendar.DAY_OF_WEEK, 2); //have it delayed until next 2 days
+				}
+				newCal.set(Calendar.HOUR_OF_DAY, 20);
+                newCal.set(Calendar.MINUTE, 0);
+                newCal.set(Calendar.SECOND, 0);
+                next = newCal.getTimeInMillis() - System.currentTimeMillis();
+			}
 //			Log.d("Retro","Next one in ms: "+next);
 			thread_retroq_alarm.postDelayed(this, next);
 		}

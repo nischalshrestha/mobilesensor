@@ -1,17 +1,12 @@
 package com.aware.plugin.sos_mobile_sensor.activities;
 
 import android.accessibilityservice.AccessibilityServiceInfo;
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -22,7 +17,6 @@ import android.view.accessibility.AccessibilityManager;
 
 import com.aware.Aware;
 import com.aware.plugin.sos_mobile_sensor.R;
-import com.aware.utils.DatabaseHelper;
 
 import java.util.List;
 
@@ -41,16 +35,8 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	*/
 	public static final String STATUS_PLUGIN_SOS_MOBILE_SENSOR = "status_plugin_sos_mobile_sensor";
 
-	@SuppressWarnings("unused")
 	public static boolean initialized = false;
-	private long downloadID;
-	private ProgressDialog waitingDialog;
-	
-	private static DatabaseHelper databaseHelper = null;
-	private static SQLiteDatabase database = null;
 
-	
-	@SuppressLint("NewApi")
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +67,6 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
         }
 	}
 
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     public static boolean isAccessibilityServiceActive(Context c) {
         AccessibilityManager accessibilityManager = (AccessibilityManager) c.getSystemService(ACCESSIBILITY_SERVICE);
         List<AccessibilityServiceInfo> runningServices = AccessibilityManagerCompat.getEnabledAccessibilityServiceList(accessibilityManager, AccessibilityEventCompat.TYPES_ALL_MASK);
@@ -93,7 +78,6 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
         }
         return false;
     }
-
 
 	@Override
 	protected void onPause(){

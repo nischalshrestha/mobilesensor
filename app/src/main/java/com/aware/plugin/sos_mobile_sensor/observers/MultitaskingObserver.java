@@ -304,11 +304,9 @@ public class MultitaskingObserver extends ContentObserver {
 					lastMultitasking = System.currentTimeMillis();
 					if(currentTime-lastMultiESM >= Plugin.throttle		&&
 					   currentTime > morning.getTimeInMillis()			&&
-					   currentTime < evening.getTimeInMillis()
-//                            &&
-//		               Calendar.DAY_OF_WEEK > 1 						&&
-//		               Calendar.DAY_OF_WEEK < 7
-                            ||
+					   currentTime < evening.getTimeInMillis()          &&
+		               Calendar.DAY_OF_WEEK > 1 						&&
+		               Calendar.DAY_OF_WEEK < 7                         ||
                        multiData.getCount() < 1
 					   ){
 						if(!Plugin.stressInit){
